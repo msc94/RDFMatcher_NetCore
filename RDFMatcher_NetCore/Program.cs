@@ -15,6 +15,7 @@ namespace RDFMatcher_NetCore
   {
     public static int NumberOfThreads;
     public static string ConnectionString;
+    public static int InsertBufferSize = 10_000;
 
     public static void CreateConnectionString(string username, string password, string databaseName)
     {

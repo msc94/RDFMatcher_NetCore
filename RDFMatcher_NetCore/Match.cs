@@ -73,6 +73,12 @@ namespace RDFMatcher_NetCore
         PrintProgress();
         Thread.Sleep(1000);
       }
+
+      foreach (var matchingThread in matchingThreads)
+      {
+        matchingThread.FlushInsertBuffer();
+      }
+
     }
   }
 }
