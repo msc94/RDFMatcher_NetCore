@@ -18,21 +18,22 @@ namespace RDFMatcher_NetCore
   class MatchItem
   {
     public object building_id;
+    public object street_zip_id;
     public string district_code;
     public string street_name;
     public string hno;
     public string hno_extension;
-    public string full_hno;
   }
 
   class MatchThread
   {
-    private const string queryCommandText = "select pt.ROAD_LINK_ID, ADDRESS\n" +
-                                            "from nld_rdf_addr addr\n" +
-                                            "left join nld_rdf_point pt using (ROAD_LINK_ID)\n" +
-                                            "where DISTRICT_CODE = @1 and STREET_FULL_NAME = @2 and ADDRESS = @3";
+    private const string queryCommandText = "SELECT pt.ROAD_LINK_ID, ADDRESS " +
+                                            "FROM NLD_RDF_ADDR addr " +
+                                            // "LEFT JOIN NLD_RDF_ADDR_STREET street USING (ROAD_LINK_ID) " +
+                                            "LEFT JOIN NLD_RDF_POINT pt USING (ROAD_LINK_ID) " +
+                                            "WHERE DISTRICT_CODE = @1 AND STREET_FULL_NAME = @2 AND ADDRESS = @3";
 
-    private const string insertCommandText = "insert into match_test2 values(@1, @2, @3)";
+    private const string insertCommandText = "INSERT INTO match_test2 VALUES(@1, @2, @3, @4)";
 
     private readonly MatchProgress _matchProgress;
     private readonly BlockingCollection<MatchItem> _workQueue;
@@ -48,7 +49,7 @@ namespace RDFMatcher_NetCore
       _matchProgress = matchProgress;
       _workQueue = workQueue;
 
-      _addrQueryConnection = new MySqlConnection(DB.connectionString);
+      _addrQueryConnection = new MySqlConnection(DB.ConnectionString);
       _addrQueryConnection.Open();
 
       _addrQueryCommand = _addrQueryConnection.CreateCommand();
@@ -59,7 +60,7 @@ namespace RDFMatcher_NetCore
       _addrQueryCommand.Parameters.AddWithValue("@2", null);
       _addrQueryCommand.Parameters.AddWithValue("@3", null);
 
-      _insertConnection = new MySqlConnection(DB.connectionString);
+      _insertConnection = new MySqlConnection(DB.ConnectionString);
       _insertConnection.Open();
 
       _insertCommand = _insertConnection.CreateCommand();
@@ -69,6 +70,7 @@ namespace RDFMatcher_NetCore
       _insertCommand.Parameters.AddWithValue("@1", null);
       _insertCommand.Parameters.AddWithValue("@2", null);
       _insertCommand.Parameters.AddWithValue("@3", null);
+      _insertCommand.Parameters.AddWithValue("@4", null);
 
       new Thread(workLoop).Start();
     }
@@ -93,9 +95,11 @@ namespace RDFMatcher_NetCore
 
     private void match(MatchItem item)
     {
+      var full_hno = CombineHNO(item.hno, item.hno_extension);
+
       _addrQueryCommand.Parameters[0].Value = item.district_code;
       _addrQueryCommand.Parameters[1].Value = item.street_name;
-      _addrQueryCommand.Parameters[2].Value = item.full_hno;
+      _addrQueryCommand.Parameters[2].Value = full_hno;
       var addrReader = _addrQueryCommand.ExecuteReader();
 
       var num_matches = 0;
@@ -105,8 +109,9 @@ namespace RDFMatcher_NetCore
 
         _insertCommand.Parameters[0].Value = item.building_id;
         _insertCommand.Parameters[1].Value = addrReader.GetValue(0);
-        _insertCommand.Parameters[2].Value = item.full_hno;
-        _insertCommand.ExecuteNonQuery();
+        _insertCommand.Parameters[2].Value = full_hno;
+        _insertCommand.Parameters[3].Value = item.street_zip_id;
+        // _insertCommand.ExecuteNonQuery();
       }
 
       addrReader.Close();
@@ -118,6 +123,17 @@ namespace RDFMatcher_NetCore
 
       Interlocked.Increment(ref _matchProgress.done);
     }
+
+    private static string CombineHNO(string hno, string hnoExtension)
+    {
+      if (hnoExtension == "")
+        return hno;
+      if (char.IsDigit(hnoExtension[0]))
+        return hno + "-" + hnoExtension;
+      else
+        return hno + hnoExtension;
+    }
+
   }
 }
 

@@ -42,7 +42,7 @@ namespace RDFMatcher_NetCore
       _streetSegProgress = streetSegProgress;
       _workQueue = workQueue;
 
-      _hnoQueryConnection = new MySqlConnection(DB.connectionString);
+      _hnoQueryConnection = new MySqlConnection(DB.ConnectionString);
       _hnoQueryConnection.Open();
 
       _hnoQueryCommand = _hnoQueryConnection.CreateCommand();
@@ -51,7 +51,7 @@ namespace RDFMatcher_NetCore
 
       _hnoQueryCommand.Parameters.AddWithValue("@1", null);
 
-      _insertConnection = new MySqlConnection(DB.connectionString);
+      _insertConnection = new MySqlConnection(DB.ConnectionString);
       _insertConnection.Open();
 
       _insertCommand = _insertConnection.CreateCommand();

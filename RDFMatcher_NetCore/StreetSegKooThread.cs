@@ -137,7 +137,7 @@ namespace RDFMatcher_NetCore
 
     private MySqlConnection createConnection()
     {
-      var conn = new MySqlConnection(DB.connectionString);
+      var conn = new MySqlConnection(DB.ConnectionString);
       conn.Open();
       return conn;
     }
