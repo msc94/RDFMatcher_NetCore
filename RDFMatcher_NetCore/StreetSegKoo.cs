@@ -14,21 +14,26 @@ namespace RDFMatcher_NetCore
     public static void DoStreetSegKoo()
     {
       var streetSegThreads = new List<StreetSegKooThread>();
-      for (int i = 0; i < 1; i++)
+      for (int i = 0; i < 16; i++)
       {
         streetSegThreads.Add(new StreetSegKooThread(_streetSegKooProgress, _workQueue));
       }
 
       var szIDReader = MySqlHelper.ExecuteReader(DB.connectionString, "SELECT ID, HN_START, HN_END, SCHEME " +
-                                                                      "FROM street_seg");
+                                                                      "FROM street_seg seg " +
+                                                                      "WHERE " +
+                                                                      " seg.STREET_ZIP_ID in " +
+                                                                      " (SELECT DISTINCT b.STREET_ZIP_ID " +
+                                                                      " FROM match_test m " +
+                                                                      " LEFT JOIN building b ON m.BUILDING_ID = b.ID)");
       while (szIDReader.Read())
       {
         var item = new StreetSegKooItem
         {
-          szID = szIDReader.GetValue(0),
-          hnStart = szIDReader.GetInt32(1),
-          hnEnd = szIDReader.GetInt32(2),
-          scheme = szIDReader.GetInt32(3)
+          szID = szIDReader.GetValue(szIDReader.GetOrdinal("ID")),
+          hnStart = szIDReader.GetInt32("HN_START"),
+          hnEnd = szIDReader.GetInt32("HN_END"),
+          scheme = szIDReader.GetInt32("SCHEME")
         };
 
         _workQueue.Add(item);
