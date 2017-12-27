@@ -349,7 +349,7 @@ namespace RDFMatcher_NetCore
           if (distance > minDistance)
           {
             int numSegmentsToAdd = (int)(distance / minDistance);
-            result.AddRange(createSegmentsBetween(currentSegment, nextSegment, distance, numSegmentsToAdd));
+            result.AddRange(CreateSegmentsBetween(currentSegment, nextSegment, distance, numSegmentsToAdd));
           }
         }
       }
@@ -357,7 +357,7 @@ namespace RDFMatcher_NetCore
       return result;
     }
 
-    private List<Segment> createSegmentsBetween(Segment s1, Segment s2, float distance, int numSegmentsToAdd)
+    private List<Segment> CreateSegmentsBetween(Segment s1, Segment s2, float distance, int numSegmentsToAdd)
     {
       float forwardLat = (s2.LAT - s1.LAT) / numSegmentsToAdd;
       float forwardLon = (s2.LON - s1.LON) / numSegmentsToAdd;
