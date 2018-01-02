@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RDFMatcher_NetCore", "RDFMa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataValidator", "DataValidator\DataValidator.csproj", "{FAE846DA-4A8B-4878-A8C4-4EE898A5DDCF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataImporter", "DataImporter\DataImporter.csproj", "{8A4E9293-10A0-4A73-9471-1CDE54B13159}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{FAE846DA-4A8B-4878-A8C4-4EE898A5DDCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FAE846DA-4A8B-4878-A8C4-4EE898A5DDCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FAE846DA-4A8B-4878-A8C4-4EE898A5DDCF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A4E9293-10A0-4A73-9471-1CDE54B13159}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A4E9293-10A0-4A73-9471-1CDE54B13159}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A4E9293-10A0-4A73-9471-1CDE54B13159}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A4E9293-10A0-4A73-9471-1CDE54B13159}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

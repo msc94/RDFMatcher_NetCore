@@ -18,6 +18,7 @@
         <StackPanel Grid.Row="0" Orientation="Horizontal">
             <Button x:Name="LoadBtn" Content="Laden" Click="LoadBtn_OnClick"/>
             <Button x:Name="NextBtn" Content="Nächste" Click="NextBtn_OnClick_OnClick"/>
+            <Button x:Name="ReloadBtn" Content="Neu Laden" Click="ReloadBtn_OnClick" />
             <Label x:Name="StreetLabel" Content="Hallo"/>
         </StackPanel>
         

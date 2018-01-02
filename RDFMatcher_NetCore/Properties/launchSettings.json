@@ -2,7 +2,7 @@
   "profiles": {
     "RDFMatcher_NetCore": {
       "commandName": "Project",
-      "commandLineArgs": "root bloodrayne test 8 3"
+      "commandLineArgs": "root bloodrayne test 8 4"
     }
   }
 }

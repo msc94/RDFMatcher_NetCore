@@ -34,6 +34,7 @@ namespace RDFMatcher_NetCore
   {
     static void Main(string[] args)
     {
+      Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
       if (args.Length != 5)
       {
         Console.WriteLine("Wrong number of parameters");
@@ -54,6 +55,10 @@ namespace RDFMatcher_NetCore
         case 3:
           StreetSegKoo.DoStreetSegKoo();
           break;
+        case 4:
+          ZipGeo.DoZipGeo();
+          break;
+
       }
     }
   }

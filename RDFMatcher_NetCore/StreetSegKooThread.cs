@@ -74,14 +74,21 @@ namespace RDFMatcher_NetCore
 
     public static int Compare(NLD_RDF_ADDR a1, NLD_RDF_ADDR a2)
     {
-      return a1.getMinHno() - a1.getMinHno();
+      return a1.getMinHno() - a2.getMinHno();
     }
   }
 
-  struct Segment
+  class Segment : IEquatable<Segment>
   {
     public float LAT;
     public float LON;
+
+    public bool Equals(Segment other)
+    {
+      const float epsilonDistance = 0.00001f;
+      return Math.Abs(LAT - other.LAT) < epsilonDistance &&
+             Math.Abs(LON - other.LON) < epsilonDistance;
+    }
   }
 
   class StreetSegKooThread
@@ -120,7 +127,7 @@ namespace RDFMatcher_NetCore
     private readonly MySqlConnection _updateSegConnection;
     private readonly MySqlCommand _updateSegCommand;
 
-    private const string _createKooGroupText =  "INSERT INTO street_seg_koo_group " +
+    private const string _createKooGroupText = "INSERT INTO street_seg_koo_group " +
                                                 "SELECT STREET_SEG_ID, GROUP_CONCAT(CONCAT(LAT, ',', LNG) SEPARATOR '@') " +
                                                 "FROM street_seg_koo " +
                                                 "WHERE STREET_SEG_ID = @1 " +
@@ -212,13 +219,12 @@ namespace RDFMatcher_NetCore
       // Get NLD_RDF_ADDR data
       var nldRdfAddrData = GetNldRdfAddrData(roadLinkIds);
 
-      var backup = new List<NLD_RDF_ADDR>(nldRdfAddrData);
-
       // Remove not-matching entries from data
       // Iterate backwards, so we can remove items while iterating
       for (int i = nldRdfAddrData.Count - 1; i >= 0; i--)
       {
         NLD_RDF_ADDR addrItem = nldRdfAddrData[i];
+
 
         if (!Match(segmentItem, addrItem))
         {
@@ -243,12 +249,13 @@ namespace RDFMatcher_NetCore
         segments.AddRange(GetSegmentsForAddr(addr));
       }
 
-
+      segments = RemoveDuplicates(segments);
       segments = AddSegmentsInBetween(segments);
 
       if (segments.Count == 0)
       {
         Console.WriteLine("WARNING: segments array is empty!");
+        return;
       }
 
       const string latFormat = "00.00000";
@@ -284,6 +291,19 @@ namespace RDFMatcher_NetCore
       _createKooGroupCommand.ExecuteNonQuery();
     }
 
+    private List<Segment> RemoveDuplicates(List<Segment> segments)
+    {
+      var result = new List<Segment>();
+
+      foreach (var segment in segments)
+      {
+        if (result.Contains(segment) == false)
+          result.Add(segment);
+      }
+
+      return result;
+    }
+
     private IEnumerable<Segment> GetSegmentsForAddr(NLD_RDF_ADDR addr)
     {
       var segments = new List<Segment>();
@@ -315,7 +335,7 @@ namespace RDFMatcher_NetCore
       float earthRadius = 6371.0f;
 
       float dLat = (s2.LAT - s1.LAT).ToRadians();
-      float dLon = (s2.LON - s2.LON).ToRadians();
+      float dLon = (s2.LON - s1.LON).ToRadians();
 
       float a = (float)
           (Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
@@ -359,14 +379,14 @@ namespace RDFMatcher_NetCore
 
     private List<Segment> CreateSegmentsBetween(Segment s1, Segment s2, float distance, int numSegmentsToAdd)
     {
-      float forwardLat = (s2.LAT - s1.LAT) / numSegmentsToAdd;
-      float forwardLon = (s2.LON - s1.LON) / numSegmentsToAdd;
+      float forwardLat = (s2.LAT - s1.LAT) / (numSegmentsToAdd + 1);
+      float forwardLon = (s2.LON - s1.LON) / (numSegmentsToAdd + 1);
 
       float startLat = s1.LAT;
       float startLon = s1.LON;
 
       var newSegments = new List<Segment>();
-      for (int i = 1; i < numSegmentsToAdd; i++) // i = 0 would be our starting point
+      for (int i = 1; i <= numSegmentsToAdd; i++) // i = 0 would be our starting point
       {
         newSegments.Add(new Segment
         {
@@ -457,14 +477,6 @@ namespace RDFMatcher_NetCore
 
     private bool Match(StreetSegKooItem seg, NLD_RDF_ADDR addr)
     {
-      // Add a tolerance to the segments house numbers
-      if (seg.hnStart == 2)
-        seg.hnStart -= 1;
-      else if (seg.hnStart > 2)
-        seg.hnStart -= 2;
-
-      seg.hnEnd += 3;
-
       // TODO: Handle Scheme
       int leftStart = 0, leftEnd = 0, rightStart = 0, rightEnd = 0;
       switch (seg.scheme)
@@ -527,10 +539,19 @@ namespace RDFMatcher_NetCore
           }
       }
 
-      if (seg.hnStart <= leftStart && seg.hnEnd >= leftEnd)
+      // Add a tolerance to the segments house numbers
+      int hnStart = seg.hnStart;
+      if (seg.hnStart == 2)
+        hnStart = seg.hnStart - 1;
+      else if (seg.hnStart > 2)
+        hnStart = seg.hnStart - 2;
+
+      int hnEnd = seg.hnEnd + 3;
+
+      if (hnStart <= leftStart && hnEnd >= leftEnd)
         return true;
 
-      if (seg.hnStart <= rightStart && seg.hnEnd >= rightEnd)
+      if (hnStart <= rightStart && hnEnd >= rightEnd)
         return true;
 
       return false;

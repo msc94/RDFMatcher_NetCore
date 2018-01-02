@@ -31,6 +31,7 @@ namespace DataValidator
 
     struct Entry
     {
+      public int id;
       public string hnStart;
       public string hnEnd;
       public string name;
@@ -41,13 +42,29 @@ namespace DataValidator
 
     private void LoadBtn_OnClick(object sender, RoutedEventArgs e)
     {
-      const string connectionString =
-        "server=localhost;" +
-        "uid=root;" +
-        "pwd=bloodrayne;" +
-        "database=test;" +
-        "connection timeout=1000;" +
-        "command timeout=1000;";
+      string connectionString;
+
+      bool local = true;
+      if (local)
+      {
+        connectionString =
+          "server=localhost;" +
+          "uid=root;" +
+          "pwd=bloodrayne;" +
+          "database=test;" +
+          "connection timeout=1000;" +
+          "command timeout=1000;";
+      }
+      else
+      {
+        connectionString =
+          "server=h2744269.stratoserver.net;" +
+          "uid=Marcel;" +
+          "pwd=YyQzKeSSX0TlgsI4;" +
+          "database=NLD;" +
+          "connection timeout=1000;" +
+          "command timeout=1000;";
+      }
 
       const string getEntry =
         "SELECT ss.ID, HN_START, HN_END, s.NAME, COORDINATES " +
@@ -60,27 +77,42 @@ namespace DataValidator
       var reader = MySqlHelper.ExecuteReader(connectionString, getEntry);
       while (reader.Read())
       {
-        int id = reader.GetInt32("ID");
         _entries.Add(new Entry
         {
+          id = reader.GetInt32("ID"),
           hnStart = reader.GetString("HN_START"),
           hnEnd = reader.GetString("HN_END"),
           name = reader.GetString("NAME"),
           coordinates = reader.GetString("COORDINATES")
         });
       }
-
-      MessageBox.Show("Laden abgeschlossen");
     }
 
     private Random _rand = new Random();
+    private Entry _currentEntry;
     private void NextBtn_OnClick_OnClick(object sender, RoutedEventArgs e)
     {
-      Entry currentEntry = _entries[_rand.Next(_entries.Count)];
-      StreetLabel.Content = currentEntry.name + " " + currentEntry.hnStart + " - " + currentEntry.hnEnd;
+      do
+      {
+        _currentEntry = _entries[_rand.Next(_entries.Count)];
+      } while (_currentEntry.coordinates.Split('@').Length < 10);
 
+      // _currentEntry = _entries.Find(entry => entry.id == 2994);
+
+      StreetLabel.Content = _currentEntry.id + ":" + _currentEntry.name + " " + _currentEntry.hnStart + " - " + _currentEntry.hnEnd;
+
+      FillMap();
+    }
+
+    private void ReloadBtn_OnClick(object sender, RoutedEventArgs e)
+    {
+      FillMap();
+    }
+
+    private void FillMap()
+    {
       var newLocations = new List<Location>();
-      var coordinates = currentEntry.coordinates.Split('@');
+      var coordinates = _currentEntry.coordinates.Split('@');
       foreach (var coordinate in coordinates)
       {
         var latLng = coordinate.Split(',');
@@ -91,14 +123,14 @@ namespace DataValidator
         var lng = float.Parse(latLng[1].Replace('.', ','));
 
         newLocations.Add(new Location(lat, lng));
-
       }
 
       Map.Children.Clear();
 
+      int ppNumber = 0;
       foreach (var location in newLocations)
       {
-        var pp = new Pushpin {Location = location};
+        var pp = new Pushpin {Location = location, Content = ppNumber++.ToString()};
         Map.Children.Add(pp);
       }
 
