@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Google.Maps;
+using Google.Maps.Geocoding;
 using MySql.Data.MySqlClient;
+using RDFMatcher_NetCore.Utilities;
 
 namespace RDFMatcher_NetCore
 {
@@ -11,22 +14,45 @@ namespace RDFMatcher_NetCore
   {
     public float lat, lng;
   }
+
   class ZipGeo
   {
-    public static void DoZipGeo(string districtCode)
+    private static Coordinate? MatchGoogle(string zip)
+    {
+      var request = new GeocodingRequest();
+      request.Address = $"{zip}, Polen";
+      var response = new GeocodingService().GetResponse(request);
+
+      if (response.Status == ServiceResponseStatus.Ok && response.Results.Count() == 1)
+      {
+        var firstResult = response.Results.First();
+        var result = new Coordinate
+        {
+          lat = (float) firstResult.Geometry.Location.Latitude,
+          lng = (float) firstResult.Geometry.Location.Longitude
+        };
+        return result;
+      }
+      else
+      {
+        return null;
+      }
+    }
+
+    public static void DoZipGeo(string zip)
     {
       var coordinates = new List<Coordinate>();
       var coordinateReader = MySqlHelper.ExecuteReader(DB.ConnectionString,
-        "SELECT addr.LEFT_DISTRICT_CODE, pt.LAT, pt.LNG " +
-        "FROM NLD_RDF_ADDR addr " +
-        " LEFT JOIN NLD_RDF_POINT pt USING (ROAD_LINK_ID) " +
-        $"WHERE addr.LEFT_DISTRICT_CODE = {districtCode} " +
+        "SELECT addr.LEFT_POSTAL_CODE, pt.LAT, pt.LNG " +
+        "FROM pol_rdf_addr addr " +
+        " LEFT JOIN pol_rdf_point pt USING (ROAD_LINK_ID) " +
+        $"WHERE addr.LEFT_POSTAL_CODE = '{zip}' " +
         " AND pt.LAT IS NOT NULL AND pt.LNG IS NOT NULL ");
 
       while (coordinateReader.Read())
       {
         string latString = coordinateReader.GetString("LAT").Insert(2, ",");
-        string lonString = coordinateReader.GetString("LNG").Insert(1, ",");
+        string lonString = coordinateReader.GetString("LNG").Insert(2, ",");
         coordinates.Add(new Coordinate
         {
           lat = float.Parse(latString),
@@ -36,34 +62,63 @@ namespace RDFMatcher_NetCore
 
       coordinateReader.Close();
 
-      if (coordinates.Count == 0)
+      bool matched = false;
+      float midLat = -1.0f, midLng = -1.0f;
+
+      if (coordinates.Count > 0)
       {
-        Console.WriteLine($"District code {districtCode} has no coordinates!");
-        return;
+        midLat = coordinates.Sum(c => c.lat) / coordinates.Count;
+        midLng = coordinates.Sum(c => c.lng) / coordinates.Count;
+        matched = true;
+      }
+      else
+      {
+        Coordinate? googleCoordinate = MatchGoogle(zip);
+
+        if (googleCoordinate != null)
+        {
+          midLat = googleCoordinate.Value.lat;
+          midLng = googleCoordinate.Value.lng;
+          matched = true;
+        }
       }
 
-      float midLat = coordinates.Sum(c => c.lat) / coordinates.Count;
-      float midLng = coordinates.Sum(c => c.lng) / coordinates.Count;
+      if (!matched)
+      {
+        Console.WriteLine($"Could not match {zip}");
+        return;
+      }
 
       const string latFormat = "00.00000";
       const string lngFormat = "0.00000";
 
       var insertString =
-        "INSERT INTO district_code_koo1 " +
-        $"VALUES ({districtCode}, {midLat.ToString(latFormat).Replace(',', '.')}, {midLng.ToString(lngFormat).Replace(',', '.')})";
+        "INSERT INTO zip_koo " +
+        $"VALUES ('{zip}', " +
+        $"{Utils.FloatToStringInvariantCulture(midLat, latFormat)}, " +
+        $"{Utils.FloatToStringInvariantCulture(midLng, lngFormat)})";
 
       MySqlHelper.ExecuteNonQuery(DB.ConnectionString, insertString);
     }
+
     public static void DoZipGeo()
     {
+      GoogleSigned.AssignAllServices(new GoogleSigned("AIzaSyCzOcXgCQ_1Nng6shWR9FRS2tRFBItyG0E"));
+
       var districtCodeReader = MySqlHelper.ExecuteReader(DB.ConnectionString, 
-        "SELECT DISTINCT DISTRICT_CODE FROM street_zip");
+        "SELECT DISTINCT ZIP " +
+        "FROM street_zip " +
+        "WHERE ZIP NOT IN (SELECT DISTRICT_CODE FROM ZIP_KOO)");
+
+      var taskList = new List<Task>();
 
       while (districtCodeReader.Read())
       {
-        var districtCode = districtCodeReader.GetString("DISTRICT_CODE");
-        DoZipGeo(districtCode);
+        var zip = districtCodeReader.GetString("ZIP");
+        DoZipGeo(zip);
       }
+
+      Task.WaitAll(taskList.ToArray());
 
       districtCodeReader.Close();
     }

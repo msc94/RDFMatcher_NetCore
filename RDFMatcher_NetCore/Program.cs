@@ -15,19 +15,19 @@ namespace RDFMatcher_NetCore
   {
     public static int NumberOfThreads;
     public static string ConnectionString;
-    public static int InsertBufferSize = 10_000;
+    public static int InsertBufferSize = 50000;
 
     public static void CreateConnectionString(string username, string password, string databaseName)
     {
       ConnectionString =
-        "server=localhost;" +
-        $"uid={username};" +
-        $"pwd={password};" +
-        $"database={databaseName};" +
-        "connection timeout=1000;" +
-        "command timeout=1000;";
+        "Server=localhost;" +
+        $"Uid={username};" +
+        $"Pwd={password};" +
+        $"Database={databaseName};" +
+        "Connection Timeout=1000;" +
+        "Command Timeout=1000;" +
+        "Charset=utf8;";
     }
-
   }
 
   class Program
@@ -35,6 +35,8 @@ namespace RDFMatcher_NetCore
     static void Main(string[] args)
     {
       Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+      Console.OutputEncoding = System.Text.Encoding.UTF8;
+
       if (args.Length != 5)
       {
         Console.WriteLine("Wrong number of parameters");

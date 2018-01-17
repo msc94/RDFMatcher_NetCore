@@ -32,11 +32,11 @@ namespace RDFMatcher_NetCore
 
     public static void DoMatch()
     {
-      string commandText = "SELECT b.id as BUILDING_ID, sz.ID as SZ_ID, sz.DISTRICT_CODE, s.NAME, b.HNO, b.HNO_EXTENSION " +
-                           "FROM building b " +
-                           "LEFT JOIN street_zip sz ON sz.id = b.STREET_ZIP_ID " +
-                           "LEFT JOIN street s ON s.id = sz.STREET_ID " +
-                           "WHERE b.ID NOT IN (SELECT BUILDING_ID FROM match_test2)";
+      string commandText = "SELECT sz.ID as SZ_ID, sz.ZIP, s.NAME " +
+                           "FROM street_zip sz " +
+                           "  LEFT JOIN street s ON s.id = sz.STREET_ID " +
+                           "";
+                           // "WHERE sz.ID NOT IN (SELECT street_zip_id FROM building)";
 
 
       var matchingThreads = new List<MatchThread>();
@@ -52,12 +52,9 @@ namespace RDFMatcher_NetCore
         {
           var item = new MatchItem
           {
-            building_id = reader.GetValue(reader.GetOrdinal("BUILDING_ID")),
             street_zip_id = reader.GetValue(reader.GetOrdinal("SZ_ID")),
-            district_code = reader.GetString("DISTRICT_CODE"),
+            zip = reader.GetString("ZIP"),
             street_name = reader.GetString("NAME"),
-            hno = reader.GetString("HNO").TrimStart('0'),
-            hno_extension = reader.GetString("HNO_EXTENSION")
           };
 
           _workQueue.Add(item);

@@ -16,7 +16,8 @@ namespace DataImporter
     "pwd=bloodrayne;" +
     "database=pol;" +
     "connection timeout=1000;" +
-    "command timeout=1000;";
+    "command timeout=1000;" +
+    "CharSet=utf8";
 
     static void LoadFile(string path)
     {
@@ -56,12 +57,16 @@ namespace DataImporter
 
           foreach (var value in values)
           {
+            string replacedValue = value;
+            replacedValue = replacedValue.Replace("\u009c", "Ś");
+            replacedValue = replacedValue.Replace("\u008c", "ś");
+
             string valueToInsert;
-            if (value == "")
+            if (replacedValue == "")
               valueToInsert = "null";
             else
             {
-              valueToInsert = "'" + value.Replace("'", "''") + "'";
+              valueToInsert = "'" + replacedValue.Replace("'", "''") + "'";
             }
             insertString += valueToInsert + ", ";
           }

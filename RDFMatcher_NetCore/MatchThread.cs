@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -17,31 +18,29 @@ namespace RDFMatcher_NetCore
 
   class MatchItem
   {
-    public object building_id;
     public object street_zip_id;
-    public string district_code;
+    public string zip;
     public string street_name;
-    public string hno;
-    public string hno_extension;
   }
 
   class InsertItem
   {
-    public object building_id;
     public object street_zip_id;
-    public object road_link_id;
-    public string full_hno;
+    public string hno;
+    public string hno_extension;
+    public object ap_lat;
+    public object ap_lng;
   }
 
   class MatchThread
   {
-    private const string queryCommandText = "SELECT pt.ROAD_LINK_ID, ADDRESS " +
-                                            "FROM NLD_RDF_ADDR addr " +
-                                            "LEFT JOIN NLD_RDF_ADDR_STREET street USING (ROAD_LINK_ID) " +
-                                            "LEFT JOIN NLD_RDF_POINT pt USING (ROAD_LINK_ID) " +
-                                            "WHERE LEFT_DISTRICT_CODE = @1 AND STREET_FULL_NAME = @2 AND ADDRESS = @3";
+    private const string queryCommandText = "SELECT addr.ROAD_LINK_ID, pt.ADDRESS, pt.LAT, pt.LNG " +
+                                            "FROM POL_RDF_ADDR addr " +
+                                            " LEFT JOIN POL_RDF_POINT pt using (ROAD_LINK_ID) " +
+                                            "WHERE addr.LEFT_POSTAL_CODE = @1 AND addr.STREET_BASE_NAME = @2 " +
+                                            " AND pt.LAT IS NOT NULL AND pt.LNG IS NOT NULL ";
 
-    private const string insertCommandText = "INSERT INTO match_test2 VALUES(@1, @2, @3, @4)";
+    private const string insertCommandText = "INSERT INTO building (STREET_ZIP_ID, HNO, HNO_EXTENSION, AP_LAT, AP_LNG) VALUES(@1, @2, @3, @4, @5)";
 
     private readonly MatchProgress _matchProgress;
     private readonly BlockingCollection<MatchItem> _workQueue;
@@ -68,7 +67,6 @@ namespace RDFMatcher_NetCore
 
       _addrQueryCommand.Parameters.AddWithValue("@1", null);
       _addrQueryCommand.Parameters.AddWithValue("@2", null);
-      _addrQueryCommand.Parameters.AddWithValue("@3", null);
 
       _insertConnection = new MySqlConnection(DB.ConnectionString);
       _insertConnection.Open();
@@ -81,6 +79,7 @@ namespace RDFMatcher_NetCore
       _insertCommand.Parameters.AddWithValue("@2", null);
       _insertCommand.Parameters.AddWithValue("@3", null);
       _insertCommand.Parameters.AddWithValue("@4", null);
+      _insertCommand.Parameters.AddWithValue("@5", null);
 
       new Thread(workLoop).Start();
     }
@@ -105,41 +104,74 @@ namespace RDFMatcher_NetCore
 
     private void Match(MatchItem item)
     {
-      var full_hno = CombineHNO(item.hno, item.hno_extension);
+      var zip = item.zip;
+      var street_name = item.street_name;
 
-      _addrQueryCommand.Parameters[0].Value = item.district_code;
-      _addrQueryCommand.Parameters[1].Value = item.street_name;
-      _addrQueryCommand.Parameters[2].Value = full_hno;
+      if (street_name.StartsWith("pl.") ||
+          street_name.StartsWith("os."))
+      {
+        street_name = street_name.Remove(0, 4);
+      }
+
+      _addrQueryCommand.Parameters[0].Value = zip;
+      _addrQueryCommand.Parameters[1].Value = street_name;
       var addrReader = _addrQueryCommand.ExecuteReader();
 
-      var num_matches = 0;
+      var numMatches = 0;
+
       while (addrReader.Read())
       {
-        num_matches++;
+        numMatches++;
 
-        _insertBuffer.Add(new InsertItem
-        {
-          building_id = item.building_id,
-          street_zip_id = item.street_zip_id,
-          road_link_id = addrReader.GetValue(addrReader.GetOrdinal("ROAD_LINK_ID")),
-          full_hno = full_hno
-        });
+        //MySqlHelper.ExecuteNonQuery(DB.ConnectionString,
+        //  $"INSERT INTO MATCH_TEST VALUES({addrReader.GetInt32("ROAD_LINK_ID")}, {item.street_zip_id})");
+        //split_address(addrReader.GetString("ADDRESS"), out var hno, out var hno_extension);
+        //var newItem = new InsertItem
+        //{
+        //  street_zip_id = item.street_zip_id,
+        //  hno = hno,
+        //  hno_extension = hno_extension,
+        //  ap_lat = addrReader.GetString("LAT").Insert(2, "."),
+        //  ap_lng = addrReader.GetString("LNG").Insert(2, ".")
+        //};
+        //_insertBuffer.Add(newItem);
       }
 
       addrReader.Close();
 
-      if (num_matches > 0)
+      if (numMatches > 0)
       {
         Interlocked.Increment(ref _matchProgress.matched);
       }
 
-      Interlocked.Increment(ref _matchProgress.done);
+      if (numMatches == 0)
+      {
+        // Console.WriteLine($"No match for {item.street_name}, {item.zip}");
+      }
 
-      Random rand = new Random();
       if (_insertBuffer.Count > DB.InsertBufferSize)
       {
         FlushInsertBuffer();
       }
+
+      Interlocked.Increment(ref _matchProgress.done);
+    }
+
+    private void split_address(string address, out string hno, out string hno_extension)
+    {
+      for (int i = 0; i < address.Length; i++)
+      {
+        if (char.IsLetter(address[i])
+          || address[i] == '/'
+          || address[i] == '?')
+        {
+          hno = address.Substring(0, i);
+          hno_extension = address.Substring(i);
+          return;
+        }
+      }
+      hno = address;
+      hno_extension = "";
     }
 
     public void FlushInsertBuffer()
@@ -150,27 +182,17 @@ namespace RDFMatcher_NetCore
       _insertCommand.Transaction = transaction;
       foreach (var item in _insertBuffer)
       {
-        _insertCommand.Parameters[0].Value = item.building_id;
-        _insertCommand.Parameters[1].Value = item.road_link_id;
-        _insertCommand.Parameters[2].Value = item.full_hno;
-        _insertCommand.Parameters[3].Value = item.street_zip_id;
+        _insertCommand.Parameters[0].Value = item.street_zip_id;
+        _insertCommand.Parameters[1].Value = item.hno;
+        _insertCommand.Parameters[2].Value = item.hno_extension;
+        _insertCommand.Parameters[3].Value = item.ap_lat;
+        _insertCommand.Parameters[4].Value = item.ap_lng;
         _insertCommand.ExecuteNonQuery();
       }
       transaction.Commit();
 
       _insertBuffer.Clear();
     }
-
-    private static string CombineHNO(string hno, string hnoExtension)
-    {
-      if (hnoExtension == "")
-        return hno;
-      if (char.IsDigit(hnoExtension[0]))
-        return hno + "-" + hnoExtension;
-      else
-        return hno + hnoExtension;
-    }
-
   }
 }
 
