@@ -23,7 +23,7 @@ namespace RDFMatcher_NetCore
     private const string queryCommandText = "SELECT ID, HNO " +
                                             "FROM building " +
                                             "WHERE STREET_ZIP_ID = @1 " +
-                                            "AND HNO IS NOT NULL AND HNO <> '00000'";
+                                            "AND HNO IS NOT NULL AND HNO <> ''";
 
     private const string insertCommandText = "INSERT INTO street_seg (STREET_ZIP_ID, HN_START, HN_END, SCHEME) " +
                                              "VALUES (@1, @2, @3, @4)";
@@ -93,7 +93,9 @@ namespace RDFMatcher_NetCore
       var houseNumberReader = _hnoQueryCommand.ExecuteReader();
       while (houseNumberReader.Read())
       {
-        houseNumbers.Add(houseNumberReader.GetInt32(1));
+        var buildingId = houseNumberReader.GetInt32("ID");
+        var houseNumber = houseNumberReader.GetInt32("HNO");
+        houseNumbers.Add(houseNumber);
       }
       houseNumberReader.Close();
 

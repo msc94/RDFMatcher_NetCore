@@ -23,14 +23,14 @@ namespace RDFMatcher_NetCore
                                                                       "FROM street_seg seg " +
                                                                       "WHERE " +
                                                                       " seg.STREET_ZIP_ID in " +
-                                                                      " (SELECT DISTINCT b.STREET_ZIP_ID " +
-                                                                      " FROM match_test m " +
-                                                                      " LEFT JOIN building b ON m.BUILDING_ID = b.ID)");
+                                                                      " (SELECT DISTINCT m.STREET_ZIP_ID FROM match_test m) AND" +
+                                                                      " seg.ID not in" +
+                                                                      " (SELECT STREET_SEG_ID FROM street_seg_koo)");
       while (szIDReader.Read())
       {
         var item = new StreetSegKooItem
         {
-          szID = szIDReader.GetValue(szIDReader.GetOrdinal("ID")),
+          segId = szIDReader.GetValue(szIDReader.GetOrdinal("ID")),
           hnStart = szIDReader.GetInt32("HN_START"),
           hnEnd = szIDReader.GetInt32("HN_END"),
           scheme = szIDReader.GetInt32("SCHEME")
