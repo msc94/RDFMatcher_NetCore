@@ -6,10 +6,12 @@ namespace RDFMatcher_NetCore
 {
   class Command
   {
-    private MySqlConnection _connection;
-    private MySqlCommand _command;
+    private MySqlConnection _connection = null;
+    private MySqlCommand _command = null;
+    private MySqlTransaction _transaction = null;
 
     private int _numParameters;
+
 
     public Command(string command)
     {
@@ -37,6 +39,17 @@ namespace RDFMatcher_NetCore
     {
       SetParameters(parameters);
       _command.ExecuteNonQuery();
+    }
+
+    public void BeginTransaction()
+    {
+      _command.Transaction = _connection.BeginTransaction();
+    }
+
+    public void EndTransaction()
+    {
+      _command.Transaction.Commit();
+      _command.Transaction = null;
     }
 
     private void SetParameters(params object[] parameters)

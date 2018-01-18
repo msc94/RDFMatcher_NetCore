@@ -20,6 +20,16 @@ namespace RDFMatcher_NetCore
       _commandBuffer[command].ExecuteNonQuery(parameters);
     }
 
+    public void BeginTransaction(string command)
+    {
+      _commandBuffer[command].BeginTransaction();
+    }
+
+    public void EndTransaction(string command)
+    {
+      _commandBuffer[command].EndTransaction();
+    }
+
     private void CreateCommandIfNotExists(string command)
     {
       if (_commandBuffer.ContainsKey(command) == false)
@@ -27,6 +37,5 @@ namespace RDFMatcher_NetCore
         _commandBuffer.Add(command, new Command(command));
       }
     }
-
   }
 }

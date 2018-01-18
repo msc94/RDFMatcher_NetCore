@@ -23,13 +23,18 @@ namespace RDFMatcher_NetCore
     public string street_name;
   }
 
-  class InsertItem
+  class InsertItem : IInsertBufferItem
   {
     public object street_zip_id;
     public string hno;
     public string hno_extension;
     public object ap_lat;
     public object ap_lng;
+
+    public void Insert()
+    {
+
+    }
   }
 
   class MatchThread
@@ -45,7 +50,6 @@ namespace RDFMatcher_NetCore
     private readonly MatchProgress _matchProgress;
     private readonly BlockingCollection<MatchItem> _workQueue;
 
-    private readonly List<InsertItem> _insertBuffer = new List<InsertItem>();
 
     private readonly MySqlConnection _addrQueryConnection;
     private readonly MySqlConnection _insertConnection;
@@ -107,12 +111,6 @@ namespace RDFMatcher_NetCore
       var zip = item.zip;
       var street_name = item.street_name;
 
-      if (street_name.StartsWith("pl.") ||
-          street_name.StartsWith("os."))
-      {
-        street_name = street_name.Remove(0, 4);
-      }
-
       _addrQueryCommand.Parameters[0].Value = zip;
       _addrQueryCommand.Parameters[1].Value = street_name;
       var addrReader = _addrQueryCommand.ExecuteReader();
@@ -149,15 +147,11 @@ namespace RDFMatcher_NetCore
         // Console.WriteLine($"No match for {item.street_name}, {item.zip}");
       }
 
-      if (_insertBuffer.Count > DB.InsertBufferSize)
-      {
-        FlushInsertBuffer();
-      }
 
       Interlocked.Increment(ref _matchProgress.done);
     }
 
-    private void split_address(string address, out string hno, out string hno_extension)
+    private void SplitAddress(string address, out string hno, out string hno_extension)
     {
       for (int i = 0; i < address.Length; i++)
       {
@@ -172,26 +166,6 @@ namespace RDFMatcher_NetCore
       }
       hno = address;
       hno_extension = "";
-    }
-
-    public void FlushInsertBuffer()
-    {
-      Console.WriteLine($"Thread {Thread.CurrentThread.ManagedThreadId} flushing input buffer...");
-      var transaction = _insertConnection.BeginTransaction();
-      _insertCommand.Connection = _insertConnection;
-      _insertCommand.Transaction = transaction;
-      foreach (var item in _insertBuffer)
-      {
-        _insertCommand.Parameters[0].Value = item.street_zip_id;
-        _insertCommand.Parameters[1].Value = item.hno;
-        _insertCommand.Parameters[2].Value = item.hno_extension;
-        _insertCommand.Parameters[3].Value = item.ap_lat;
-        _insertCommand.Parameters[4].Value = item.ap_lng;
-        _insertCommand.ExecuteNonQuery();
-      }
-      transaction.Commit();
-
-      _insertBuffer.Clear();
     }
   }
 }

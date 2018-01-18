@@ -16,17 +16,12 @@ namespace RDFMatcher_NetCore
     public int done = 0;
   }
 
-  class StreetSegKooItem
-  {
-    public object segId;
-    public int hnStart;
-    public int hnEnd;
-    public int scheme;
-  }
+  // TODO:
+  // 1. Evtl nur innerhalb von Segmenten aus RDF neue Punkte einfuegen?
+  // 2. Segmente haben einen gemeinsamen Punkt... evtl kann man nach diesem sortieren?
 
   class StreetSegKooThread
   {
-
     private readonly StreetSegKooProgress _streetSegKooProgress;
     private readonly BlockingCollection<StreetSegKooItem> _workQueue;
 
