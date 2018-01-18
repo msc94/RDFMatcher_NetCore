@@ -20,6 +20,7 @@ namespace RDFMatcher_NetCore
       _commandBuffer[command].ExecuteNonQuery(parameters);
     }
 
+    // TODO: This does not seem well thought out yet
     public void BeginTransaction(string command)
     {
       _commandBuffer[command].BeginTransaction();
