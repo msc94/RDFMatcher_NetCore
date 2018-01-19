@@ -36,13 +36,16 @@ namespace RDFMatcher_NetCore
                            "FROM street_zip sz " +
                            "  LEFT JOIN street s ON s.id = sz.STREET_ID " +
                            "";
-                           // "WHERE sz.ID NOT IN (SELECT street_zip_id FROM building)";
+      // "WHERE sz.ID NOT IN (SELECT street_zip_id FROM building)";
 
 
-      var matchingThreads = new List<MatchThread>();
+      var matchingThreadsProgress = new WorkerThreadsProgress();
+      var matchingThreadWorkQueue = new BlockingCollection<Action>();
+      var matchingThreads = new List<WorkerThread>();
+
       for (int i = 0; i < DB.NumberOfThreads; i++)
       {
-        matchingThreads.Add(new MatchThread(_matchProgress, _workQueue));
+        matchingThreads.Add(new WorkerThread(matchingThreadsProgress, matchingThreadWorkQueue));
       }
 
       var reader = MySqlHelper.ExecuteReader(DB.ConnectionString, commandText);

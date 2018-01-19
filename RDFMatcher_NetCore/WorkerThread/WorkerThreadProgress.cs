@@ -1,10 +1,13 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 
 namespace RDFMatcher_NetCore
 {
-  class WorkerThreadProgress
+  class WorkerThreadsProgress
   {
     private int _itemsDone = 0;
+    private int _itemsSuccessful = 0;
+
     public int ItemsDone
     {
       get
@@ -16,6 +19,11 @@ namespace RDFMatcher_NetCore
     public void IncrementItemsDone()
     {
       Interlocked.Increment(ref _itemsDone);
+    }
+
+    internal void IncrementItemsSuccessful()
+    {
+      Interlocked.Increment(ref _itemsSuccessful);
     }
   }
 }

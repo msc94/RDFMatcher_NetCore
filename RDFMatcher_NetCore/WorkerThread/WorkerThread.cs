@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using MySql.Data.MySqlClient;
@@ -11,12 +12,16 @@ using RDFMatcher_NetCore.Utilities;
 
 namespace RDFMatcher_NetCore
 {
+
+  // The Workerthread should have a Database instance that is unique for every thread
+  // and give it to each item
+
   class WorkerThread
   {
-    private WorkerThreadProgress _workerThreadProgress;
+    private WorkerThreadsProgress _workerThreadProgress;
     private BlockingCollection<Action> _workQueue;
 
-    public WorkerThread(WorkerThreadProgress workerThreadProgress, BlockingCollection<Action> workQueue)
+    public WorkerThread(WorkerThreadsProgress workerThreadProgress, BlockingCollection<Action> workQueue)
     {
       _workerThreadProgress = workerThreadProgress;
       _workQueue = workQueue;
@@ -37,7 +42,16 @@ namespace RDFMatcher_NetCore
 
         if (item != null)
         {
-          item();
+          try
+          {
+            item();
+          _workerThreadProgress.IncrementItemsSuccessful();
+          }
+          catch(Exception e)
+          {
+
+          }
+
           _workerThreadProgress.IncrementItemsDone();
         }
       }
