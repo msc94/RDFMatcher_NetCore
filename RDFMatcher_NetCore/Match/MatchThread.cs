@@ -8,7 +8,6 @@ using MySql.Data.MySqlClient;
 
 namespace RDFMatcher_NetCore
 {
-
   class MatchAddressThread : WorkerThread<MatchAddressItem>
   {
     private const string insertCommandText = "INSERT INTO building (STREET_ZIP_ID, HNO, HNO_EXTENSION, AP_LAT, AP_LNG) VALUES(@1, @2, @3, @4, @5)";
@@ -21,13 +20,15 @@ namespace RDFMatcher_NetCore
       _insertBuffer = new MatchInsertBuffer(_db);
     }
 
-    public override bool Work(MatchAddressItem item)
+    public override WorkResult Work(MatchAddressItem item)
     {
       var pointsForAddress = _db.GetRdfPointsForAddress(item.Zip, item.StreetName, item.HouseNumber, item.HouseNumberExtension);
       var numMatches = pointsForAddress.Count;
 
-      if (numMatches != 1)
-        return false;
+      if (numMatches > 1)
+        return WorkResult.TooManyMatches;
+      else if (numMatches == 0)
+        return WorkResult.NoMatch;
 
       foreach (var point in pointsForAddress)
       {
@@ -40,7 +41,7 @@ namespace RDFMatcher_NetCore
         });
       }
 
-      return true;
+      return WorkResult.Successful;
     }
     
     public void FlushInsertBuffer()

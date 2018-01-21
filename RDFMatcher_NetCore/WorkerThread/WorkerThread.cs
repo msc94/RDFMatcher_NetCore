@@ -42,7 +42,8 @@ namespace RDFMatcher_NetCore
         {
           try
           {
-            if (Work(item))
+            var result = Work(item);
+            if (result == WorkResult.Successful)
             {
               _workerThreadProgress.IncrementItemsSuccessful();
             }
@@ -61,6 +62,6 @@ namespace RDFMatcher_NetCore
     }
 
     // Implement this in sub-classes to implement Logic.
-    public abstract bool Work(T item);
+    public abstract WorkResult Work(T item);
   }
 }
