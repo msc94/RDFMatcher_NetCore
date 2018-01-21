@@ -41,7 +41,7 @@ namespace RDFMatcher_NetCore
 
       var matchingThreadsProgress = new WorkerThreadsProgress();
       var matchingThreadWorkQueue = new BlockingCollection<MatchAddressItem>();
-      var matchingThreads = new List<WorkerThread<MatchAddressItem>>();
+      var matchingThreads = new List<MatchAddressThread>();
 
       for (int i = 0; i < DB.NumberOfThreads; i++)
       {
@@ -76,7 +76,7 @@ namespace RDFMatcher_NetCore
 
       foreach (var matchingThread in matchingThreads)
       {
-        // matchingThread.FlushInsertBuffer();
+        matchingThread.FlushInsertBuffer();
       }
 
     }

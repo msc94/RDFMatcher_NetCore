@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
+using RDFMatcher_NetCore.DBHelper;
 using RDFMatcher_NetCore.Utilities;
 
 namespace RDFMatcher_NetCore
@@ -22,7 +23,7 @@ namespace RDFMatcher_NetCore
     public string HouseNumberExtension;
   }
 
-  class InsertItem
+  class MatchedAddressItem
   {
     public object StreetZipId;
     public object BuildingId;
@@ -33,9 +34,16 @@ namespace RDFMatcher_NetCore
     public Coordinates<string> Coordinates;
   }
 
-  class MatchInsertBuffer : InsertBuffer<InsertItem>
+  class MatchInsertBuffer : InsertBuffer<MatchedAddressItem>
   {
-    public override void InsertItem(InsertItem item)
+    private Database _db;
+
+    public MatchInsertBuffer(Database db)
+    {
+      _db = db;
+    }
+
+    public override void FlushItems(IEnumerable<MatchedAddressItem> items)
     {
       // TODO: Implement
       throw new NotImplementedException();
@@ -46,11 +54,12 @@ namespace RDFMatcher_NetCore
   {
     private const string insertCommandText = "INSERT INTO building (STREET_ZIP_ID, HNO, HNO_EXTENSION, AP_LAT, AP_LNG) VALUES(@1, @2, @3, @4, @5)";
 
-    private InsertBuffer<InsertItem> _insertBuffer;
+    private InsertBuffer<MatchedAddressItem> _insertBuffer;
 
     public MatchAddressThread(WorkerThreadsProgress workerThreadsProgress, BlockingCollection<MatchAddressItem> workQueue)
       : base(workerThreadsProgress, workQueue)
     {
+      _insertBuffer = new MatchInsertBuffer(_db);
     }
 
     public override bool Work(MatchAddressItem item)
@@ -64,7 +73,7 @@ namespace RDFMatcher_NetCore
       foreach (var point in pointsForAddress)
       {
         var coordinates = point.Coordinates;
-        _insertBuffer.Insert(new InsertItem()
+        _insertBuffer.Insert(new MatchedAddressItem()
         {
           Coordinates = coordinates,
           RoadLinkId = point.RoadLinkId,
@@ -74,6 +83,12 @@ namespace RDFMatcher_NetCore
 
       return true;
     }
+    
+    public void FlushInsertBuffer()
+    {
+      _insertBuffer.Flush();
+    }
+
   }
 }
 

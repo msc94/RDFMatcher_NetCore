@@ -24,14 +24,11 @@ namespace RDFMatcher_NetCore
 
     public void Flush()
     {
-      foreach (var insertItem in _insertBuffer)
-      {
-        Insert(insertItem);
-      }
+      FlushItems(_insertBuffer);
       _insertBuffer.Clear();
     }
 
     // Implement in subclasses
-    public abstract void InsertItem(T item);
+    public abstract void FlushItems(IEnumerable<T> item);
   }
 }
