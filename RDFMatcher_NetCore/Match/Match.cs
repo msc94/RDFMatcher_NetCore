@@ -11,24 +11,8 @@ namespace RDFMatcher_NetCore
 {
   class Match
   {
-    private static WorkerThreadsProgress _workerThreadProgress = new WorkerThreadsProgress();
+    private static WorkerThreadsProgress _workerThreadsProgress = new WorkerThreadsProgress();
     private static BlockingCollection<MatchAddressItem> _workQueue = new BlockingCollection<MatchAddressItem>();
-
-    private static int _lastDoneItems = 0;
-    private static void PrintProgress()
-    {
-      var done = _workerThreadProgress.ItemsDone;
-      var matched = _workerThreadProgress.ItemsSuccessful;
-
-      var matchedPercentage = matched / done;
-      var matchedString = matchedPercentage.ToString("0.00");
-
-      var matchesPerSecond = done - _lastDoneItems;
-      _lastDoneItems = done;
-
-      Console.WriteLine($"Done: {done}, Matched: {matched}, Percentage: {matchedString}, Items/s: {matchesPerSecond}");
-    }
-
 
     public static void DoMatch()
     {
@@ -70,7 +54,7 @@ namespace RDFMatcher_NetCore
       _workQueue.CompleteAdding();
       while (_workQueue.IsCompleted == false)
       {
-        PrintProgress();
+        _workerThreadsProgress.PrintProgress();
         Thread.Sleep(1000);
       }
 

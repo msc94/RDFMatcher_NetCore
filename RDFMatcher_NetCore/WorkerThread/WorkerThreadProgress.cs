@@ -33,5 +33,25 @@ namespace RDFMatcher_NetCore
     {
       Interlocked.Increment(ref _itemsSuccessful);
     }
+
+    private int _lastDoneItems = 0;
+    public string ProgressString()
+    {
+      var done = ItemsDone;
+      var successful = ItemsSuccessful;
+
+      var matchedPercentage = (float)successful / done;
+      var percentageString = matchedPercentage.ToString("0.00");
+
+      var itemsPerSecond = done - _lastDoneItems;
+      _lastDoneItems = done;
+
+      return $"Done: {done}, Successful: {successful}, Percentage: {percentageString}, Items/s: {itemsPerSecond}";
+    }
+
+    public void PrintProgress()
+    {
+      Console.WriteLine(ProgressString());
+    }
   }
 }

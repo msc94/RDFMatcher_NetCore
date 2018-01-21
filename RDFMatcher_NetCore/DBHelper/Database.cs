@@ -14,6 +14,12 @@ namespace RDFMatcher_NetCore.DBHelper
 
 
     private readonly int _latDecimalPosition = 2;
+
+    internal void InsertMatchedItems(IEnumerable<MatchedAddressItem> items)
+    {
+      throw new NotImplementedException();
+    }
+
     private readonly int _lngDecimalPosition = 2;
 
     private readonly CommandBuffer _commandBuffer = new CommandBuffer();
