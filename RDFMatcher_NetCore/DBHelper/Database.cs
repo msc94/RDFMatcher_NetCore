@@ -9,19 +9,20 @@ namespace RDFMatcher_NetCore.DBHelper
   {
     // Settings
     private readonly string _rdfAddrTable = "POL_RDF_ADDR";
-
     private readonly string _rdfSegTable = "POL_RDF_SEG";
+    private readonly string _rdfPointTable = "POL_RDF_POINT";
+
+
     private readonly int _latDecimalPosition = 2;
     private readonly int _lngDecimalPosition = 2;
 
     private readonly CommandBuffer _commandBuffer = new CommandBuffer();
-
     public RdfAddr GetRdfAddr(int roadLinkID)
     {
       var reader = _commandBuffer.ExececuteReader(
         "SELECT LEFT_HNO_START, LEFT_HNO_END, RIGHT_HNO_START, RIGHT_HNO_END " +
         $"FROM {_rdfAddrTable} addr " +
-        "WHERE ROAD_LINK_ID = @1", 
+        "WHERE ROAD_LINK_ID = @1",
         roadLinkID);
 
       var newItem = new RdfAddr();
@@ -115,6 +116,45 @@ namespace RDFMatcher_NetCore.DBHelper
         "GROUP BY STREET_SEG_ID " +
         "ORDER BY ORD ",
         segmentId);
+    }
+
+    // Be careful when this function returns more than one item!
+    public List<RdfPointItem> GetRdfPointsForAddress(string zip, string streetName, string houseNumber, string houseNumberExtension)
+    {
+      var reader = _commandBuffer.ExececuteReader(
+        "SELECT addr.ROAD_LINK_ID, addr.LEFT_POSTAL_CODE, addr.STREET_BASE_NAME, pt.ADDRESS, pt.LAT, pt.LNG " +
+        $"FROM {_rdfAddrTable} " +
+        $" LEFT JOIN {_rdfPointTable} pt using (ROAD_LINK_ID) " +
+        "WHERE " +
+        " addr.LEFT_POSTAL_CODE = @1 AND " +
+        " addr.STREET_BASE_NAME = @2 AND " +
+        " pt.HNO = @3 AND " +
+        " pt.HNO_EXTENSION = @4 " +
+        " AND pt.LAT IS NOT NULL AND pt.LNG IS NOT NULL ",
+        zip, streetName, houseNumber, houseNumberExtension);
+
+      List<RdfPointItem> coordinateList = new List<RdfPointItem>();
+      using (reader)
+      {
+        while (reader.Read())
+        {
+          var coordinates = new Coordinates<string>()
+          {
+            Lat = reader.GetString("LAT"),
+            Lng = reader.GetString("LNG")
+          };
+          var rdfPointEntry = new RdfPointItem()
+          {
+            RoadLinkId = reader.GetInt32("ROAD_LINK_ID"),
+            Address = reader.GetString("ADDRESS"),
+            Zip = reader.GetString("LEFT_POSTAL_CODE"),
+            StreetBaseName = reader.GetString("STREET_BASE_NAME"),
+            Coordinates = coordinates
+          };
+          coordinateList.Add(rdfPointEntry);
+        }
+      }
+      return coordinateList;
     }
   }
 }

@@ -16,6 +16,14 @@ namespace RDFMatcher_NetCore
       }
     }
 
+    public int ItemsSuccessful
+    {
+      get
+      {
+        return _itemsSuccessful;
+      }
+    }
+
     public void IncrementItemsDone()
     {
       Interlocked.Increment(ref _itemsDone);

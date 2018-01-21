@@ -7,93 +7,72 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
+using RDFMatcher_NetCore.Utilities;
 
 namespace RDFMatcher_NetCore
 {
-  class MatchItem
+  class MatchAddressItem
   {
-    public object street_zip_id;
-    public string zip;
-    public string street_name;
+    public object StreetZipId;
+    public object BuildingId;
+
+    public string Zip;
+    public string StreetName;
+    public string HouseNumber;
+    public string HouseNumberExtension;
   }
 
-  class InsertItem : IInsertBufferItem
+  class InsertItem
   {
-    public object street_zip_id;
-    public string hno;
-    public string hno_extension;
-    public object ap_lat;
-    public object ap_lng;
+    public object StreetZipId;
+    public object BuildingId;
+    public object RoadLinkId;
 
-    public void Insert()
+    public string Hno;
+    public string HnoExtension;
+    public Coordinates<string> Coordinates;
+  }
+
+  class MatchInsertBuffer : InsertBuffer<InsertItem>
+  {
+    public override void InsertItem(InsertItem item)
     {
-
+      // TODO: Implement
+      throw new NotImplementedException();
     }
   }
 
-
-  class MatchThread
+  class MatchAddressThread : WorkerThread<MatchAddressItem>
   {
-    private const string queryCommandText = "SELECT addr.ROAD_LINK_ID, pt.ADDRESS, pt.LAT, pt.LNG " +
-                                            "FROM POL_RDF_ADDR addr " +
-                                            " LEFT JOIN POL_RDF_POINT pt using (ROAD_LINK_ID) " +
-                                            "WHERE addr.LEFT_POSTAL_CODE = @1 AND addr.STREET_BASE_NAME = @2 " +
-                                            " AND pt.LAT IS NOT NULL AND pt.LNG IS NOT NULL ";
-
     private const string insertCommandText = "INSERT INTO building (STREET_ZIP_ID, HNO, HNO_EXTENSION, AP_LAT, AP_LNG) VALUES(@1, @2, @3, @4, @5)";
 
-    private InsertBuffer _insertBuffer;
+    private InsertBuffer<InsertItem> _insertBuffer;
 
-
-    private void Match(MatchItem item)
+    public MatchAddressThread(WorkerThreadsProgress workerThreadsProgress, BlockingCollection<MatchAddressItem> workQueue)
+      : base(workerThreadsProgress, workQueue)
     {
-      var zip = item.zip;
-      var street_name = item.street_name;
-
-      _addrQueryCommand.Parameters[0].Value = zip;
-      _addrQueryCommand.Parameters[1].Value = street_name;
-      var addrReader = _addrQueryCommand.ExecuteReader();
-
-      var numMatches = 0;
-
-      while (addrReader.Read())
-      {
-        numMatches++;
-        SplitAddress(addrReader.GetString("ADDRESS"), out var hno, out var hno_extension);
-        var newItem = new InsertItem
-        {
-          street_zip_id = item.street_zip_id,
-          hno = hno,
-          hno_extension = hno_extension,
-          ap_lat = addrReader.GetString("LAT").Insert(2, "."),
-          ap_lng = addrReader.GetString("LNG").Insert(2, ".")
-        };
-        _insertBuffer.Insert(newItem);
-      }
-
-      addrReader.Close();
-
-      if (numMatches == 0)
-      {
-        // Console.WriteLine($"No match for {item.street_name}, {item.zip}");
-      }
     }
 
-    private void SplitAddress(string address, out string hno, out string hno_extension)
+    public override bool Work(MatchAddressItem item)
     {
-      for (int i = 0; i < address.Length; i++)
+      var pointsForAddress = _db.GetRdfPointsForAddress(item.Zip, item.StreetName, item.HouseNumber, item.HouseNumberExtension);
+      var numMatches = pointsForAddress.Count;
+
+      if (numMatches != 1)
+        return false;
+
+      foreach (var point in pointsForAddress)
       {
-        if (char.IsLetter(address[i])
-          || address[i] == '/'
-          || address[i] == '?')
+        var coordinates = point.Coordinates;
+        _insertBuffer.Insert(new InsertItem()
         {
-          hno = address.Substring(0, i);
-          hno_extension = address.Substring(i);
-          return;
-        }
+          Coordinates = coordinates,
+          RoadLinkId = point.RoadLinkId,
+          BuildingId = item.BuildingId
+        });
       }
-      hno = address;
-      hno_extension = "";
+
+      return true;
     }
   }
 }

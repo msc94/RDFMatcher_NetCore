@@ -11,16 +11,16 @@ namespace RDFMatcher_NetCore
 {
   class Match
   {
-    private static MatchProgress _matchProgress = new MatchProgress();
-    private static BlockingCollection<MatchItem> _workQueue = new BlockingCollection<MatchItem>();
+    private static WorkerThreadsProgress _workerThreadProgress = new WorkerThreadsProgress();
+    private static BlockingCollection<MatchAddressItem> _workQueue = new BlockingCollection<MatchAddressItem>();
 
     private static int _lastDoneItems = 0;
     private static void PrintProgress()
     {
-      var done = _matchProgress.done;
-      var matched = _matchProgress.matched;
+      var done = _workerThreadProgress.ItemsDone;
+      var matched = _workerThreadProgress.ItemsSuccessful;
 
-      var matchedPercentage = (float)_matchProgress.matched / done;
+      var matchedPercentage = matched / done;
       var matchedString = matchedPercentage.ToString("0.00");
 
       var matchesPerSecond = done - _lastDoneItems;
@@ -40,12 +40,12 @@ namespace RDFMatcher_NetCore
 
 
       var matchingThreadsProgress = new WorkerThreadsProgress();
-      var matchingThreadWorkQueue = new BlockingCollection<Action>();
-      var matchingThreads = new List<WorkerThread>();
+      var matchingThreadWorkQueue = new BlockingCollection<MatchAddressItem>();
+      var matchingThreads = new List<WorkerThread<MatchAddressItem>>();
 
       for (int i = 0; i < DB.NumberOfThreads; i++)
       {
-        matchingThreads.Add(new WorkerThread(matchingThreadsProgress, matchingThreadWorkQueue));
+        matchingThreads.Add(new MatchAddressThread(matchingThreadsProgress, matchingThreadWorkQueue));
       }
 
       var reader = MySqlHelper.ExecuteReader(DB.ConnectionString, commandText);
@@ -53,11 +53,11 @@ namespace RDFMatcher_NetCore
       {
         try
         {
-          var item = new MatchItem
+          var item = new MatchAddressItem
           {
-            street_zip_id = reader.GetValue(reader.GetOrdinal("SZ_ID")),
-            zip = reader.GetString("ZIP"),
-            street_name = reader.GetString("NAME"),
+            StreetZipId = reader.GetValue(reader.GetOrdinal("SZ_ID")),
+            Zip = reader.GetString("ZIP"),
+            StreetName = reader.GetString("NAME"),
           };
 
           _workQueue.Add(item);
@@ -76,7 +76,7 @@ namespace RDFMatcher_NetCore
 
       foreach (var matchingThread in matchingThreads)
       {
-        matchingThread.FlushInsertBuffer();
+        // matchingThread.FlushInsertBuffer();
       }
 
     }

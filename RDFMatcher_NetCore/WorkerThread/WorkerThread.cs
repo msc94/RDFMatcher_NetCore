@@ -12,16 +12,14 @@ using RDFMatcher_NetCore.Utilities;
 
 namespace RDFMatcher_NetCore
 {
-
-  // The Workerthread should have a Database instance that is unique for every thread
-  // and give it to each item
-
-  class WorkerThread
+  abstract class WorkerThread<T>
   {
-    private WorkerThreadsProgress _workerThreadProgress;
-    private BlockingCollection<Action> _workQueue;
+    protected Database _db = new Database();
 
-    public WorkerThread(WorkerThreadsProgress workerThreadProgress, BlockingCollection<Action> workQueue)
+    private WorkerThreadsProgress _workerThreadProgress;
+    private BlockingCollection<T> _workQueue;
+
+    public WorkerThread(WorkerThreadsProgress workerThreadProgress, BlockingCollection<T> workQueue)
     {
       _workerThreadProgress = workerThreadProgress;
       _workQueue = workQueue;
@@ -33,7 +31,7 @@ namespace RDFMatcher_NetCore
     {
       while (!_workQueue.IsCompleted)
       {
-        Action item = null;
+        T item = default(T);
         try
         {
           item = _workQueue.Take();
@@ -44,17 +42,25 @@ namespace RDFMatcher_NetCore
         {
           try
           {
-            item();
-          _workerThreadProgress.IncrementItemsSuccessful();
+            if (Work(item))
+            {
+              _workerThreadProgress.IncrementItemsSuccessful();
+            }
           }
-          catch(Exception e)
+          catch (Exception e)
           {
-
+            Trace.TraceWarning("Worker thread: Work() failed on item:\n" +
+              item.ToString() + "\n" +
+              "with error:\n" + 
+              e.Message);
           }
 
           _workerThreadProgress.IncrementItemsDone();
         }
       }
     }
+
+    // Implement this in sub-classes to implement Logic.
+    public abstract bool Work(T item);
   }
 }

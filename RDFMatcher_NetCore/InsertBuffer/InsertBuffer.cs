@@ -5,14 +5,14 @@ using System.Text;
 
 namespace RDFMatcher_NetCore
 {
-  class InsertBuffer
+  abstract class InsertBuffer<T>
   {
     // TODO: Remove global variable access
     private readonly int _maxInsertBufferSize = DB.InsertBufferSize;
-    
-    private readonly List<IInsertBufferItem> _insertBuffer = new List<IInsertBufferItem>();
 
-    public void Insert(IInsertBufferItem item)
+    private readonly List<T> _insertBuffer = new List<T>();
+
+    public void Insert(T item)
     {
       _insertBuffer.Add(item);
 
@@ -26,9 +26,12 @@ namespace RDFMatcher_NetCore
     {
       foreach (var insertItem in _insertBuffer)
       {
-        insertItem.Insert();
+        Insert(insertItem);
       }
       _insertBuffer.Clear();
     }
+
+    // Implement in subclasses
+    public abstract void InsertItem(T item);
   }
 }

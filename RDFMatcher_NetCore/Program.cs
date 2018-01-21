@@ -34,8 +34,12 @@ namespace RDFMatcher_NetCore
   {
     static void Main(string[] args)
     {
+      // Add right encoding
       Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
       Console.OutputEncoding = System.Text.Encoding.UTF8;
+
+      // Add trace listener
+      Trace.Listeners.Add(new TextWriterTraceListener("TraceLog.txt"));
 
       if (args.Length != 5)
       {

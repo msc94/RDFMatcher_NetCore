@@ -1,6 +1,6 @@
 ﻿namespace RDFMatcher_NetCore
 {
-  class StreetSegKooItem : IWorkerThreadItem
+  class StreetSegKooItem
   {
     public object segId;
     public int hnStart;
