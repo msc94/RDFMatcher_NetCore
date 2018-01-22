@@ -1,15 +1,20 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2010
+VisualStudioVersion = 15.0.27130.2024
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RDFMatcher_NetCore", "RDFMatcher_NetCore\RDFMatcher_NetCore.csproj", "{27FB6987-57A7-44B6-9945-D8857D3D1EE8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataValidator", "DataValidator\DataValidator.csproj", "{FAE846DA-4A8B-4878-A8C4-4EE898A5DDCF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataImporter", "DataImporter\DataImporter.csproj", "{8A4E9293-10A0-4A73-9471-1CDE54B13159}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataImporter", "DataImporter\DataImporter.csproj", "{8A4E9293-10A0-4A73-9471-1CDE54B13159}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharedDatabase", "SharedDatabase\SharedDatabase.shproj", "{C2458353-19EF-4AB4-9266-87FB47B4C4C7}"
 EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		SharedDatabase\SharedDatabase.projitems*{c2458353-19ef-4ab4-9266-87fb47b4c4c7}*SharedItemsImports = 13
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU

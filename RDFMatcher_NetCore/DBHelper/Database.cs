@@ -12,17 +12,16 @@ namespace RDFMatcher_NetCore.DBHelper
     private readonly string _rdfSegTable = "POL_RDF_SEG";
     private readonly string _rdfPointTable = "POL_RDF_POINT";
 
-
     private readonly int _latDecimalPosition = 2;
+    private readonly int _lngDecimalPosition = 2;
+
+    private readonly CommandBuffer _commandBuffer = new CommandBuffer();
 
     internal void InsertMatchedItems(IEnumerable<MatchedAddressItem> items)
     {
       throw new NotImplementedException();
     }
 
-    private readonly int _lngDecimalPosition = 2;
-
-    private readonly CommandBuffer _commandBuffer = new CommandBuffer();
     public RdfAddr GetRdfAddr(int roadLinkID)
     {
       var reader = _commandBuffer.ExececuteReader(
