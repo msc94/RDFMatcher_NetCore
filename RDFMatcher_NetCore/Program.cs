@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.SqlTypes;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -30,6 +31,26 @@ namespace RDFMatcher_NetCore
     }
   }
 
+  class Log
+  {
+    private static TextWriter _logWriter;
+
+    public static void Init(string fileName)
+    {
+      _logWriter = TextWriter.Synchronized(new StreamWriter(fileName));
+    }
+
+    public static void WriteLine(string message)
+    {
+      _logWriter.WriteLine(message);
+    }
+
+    public static void Flush()
+    {
+      _logWriter.Flush();
+    }
+  }
+
   class Program
   {
     static void Main(string[] args)
@@ -38,8 +59,6 @@ namespace RDFMatcher_NetCore
       Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
       Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-      // Add trace listener
-      Trace.Listeners.Add(new TextWriterTraceListener("TraceLog.txt"));
 
       if (args.Length != 5)
       {
@@ -53,19 +72,28 @@ namespace RDFMatcher_NetCore
       switch (int.Parse(args[4]))
       {
         case 1:
-          Match.DoMatch();
+          Log.Init(@"J:\MatchSzLog.txt");
+          MatchSz.DoMatch();
           break;
         case 2:
-          StreetSeg.DoStreetSeg();
+          Log.Init(@"J:\MatchAddressLog.txt");
+          MatchAddress.DoMatch();
           break;
         case 3:
-          StreetSegKoo.DoStreetSegKoo();
+          Log.Init(@"J:\StreetSegLog.txt");
+          StreetSeg.DoStreetSeg();
           break;
         case 4:
+          Log.Init(@"J:\StreetSegKooLog.txt");
+          StreetSegKoo.DoStreetSegKoo();
+          break;
+        case 5:
+          Log.Init(@"J:\ZipGeoLog.txt");
           ZipGeo.DoZipGeo();
           break;
-
       }
+
+      Log.Flush();
     }
   }
 }

@@ -8,42 +8,43 @@ namespace RDFMatcher_NetCore
 {
   public class StreetSegKoo
   {
-    private static StreetSegKooProgress _streetSegKooProgress = new StreetSegKooProgress();
-    private static BlockingCollection<StreetSegKooItem> _workQueue = new BlockingCollection<StreetSegKooItem>();
-
     public static void DoStreetSegKoo()
     {
+      var workQueue = new BlockingCollection<StreetSegKooItem>();
+      var workerThreadsProgress = new WorkerThreadsProgress();
+
       var streetSegThreads = new List<StreetSegKooThread>();
       for (int i = 0; i < DB.NumberOfThreads; i++)
       {
-        streetSegThreads.Add(new StreetSegKooThread(_streetSegKooProgress, _workQueue));
+        streetSegThreads.Add(new StreetSegKooThread(workerThreadsProgress, workQueue));
       }
 
       var szIDReader = MySqlHelper.ExecuteReader(DB.ConnectionString, "SELECT ID, HN_START, HN_END, SCHEME " +
                                                                       "FROM street_seg seg " +
                                                                       "WHERE " +
                                                                       " seg.STREET_ZIP_ID in " +
-                                                                      " (SELECT DISTINCT m.STREET_ZIP_ID FROM match_test m) AND" +
+                                                                      " (SELECT DISTINCT m.SZ_ID FROM match_sz m) AND" +
                                                                       " seg.ID not in" +
                                                                       " (SELECT STREET_SEG_ID FROM street_seg_koo)");
       while (szIDReader.Read())
       {
         var item = new StreetSegKooItem
         {
-          segId = szIDReader.GetValue(szIDReader.GetOrdinal("ID")),
-          hnStart = szIDReader.GetInt32("HN_START"),
-          hnEnd = szIDReader.GetInt32("HN_END"),
-          scheme = szIDReader.GetInt32("SCHEME")
+          SegmentId = szIDReader.GetValue(szIDReader.GetOrdinal("ID")),
+          HouseNumberStart = szIDReader.GetInt32("HN_START"),
+          HouseNumberEnd = szIDReader.GetInt32("HN_END"),
+          Scheme = szIDReader.GetInt32("SCHEME")
         };
 
-        _workQueue.Add(item);
+        workQueue.Add(item);
       }
       szIDReader.Close();
 
-      _workQueue.CompleteAdding();
-      while (_workQueue.IsCompleted == false)
+      workQueue.CompleteAdding();
+      while (workQueue.IsCompleted == false)
       {
-        Console.WriteLine($"Done: {_streetSegKooProgress.done}, Left: {_workQueue.Count}");
+        workerThreadsProgress.PrintProgress();
+        Log.Flush();
         Thread.Sleep(2000);
       }
     }

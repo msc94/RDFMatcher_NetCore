@@ -10,15 +10,15 @@ namespace RDFMatcher_NetCore
 {
   class StreetSeg
   {
-    private static StreetSegProgress _streetSegProgress = new StreetSegProgress();
-    private static BlockingCollection<StreetSegItem> _workQueue = new BlockingCollection<StreetSegItem>();
-
     public static void DoStreetSeg()
     {
+      var workQueue = new BlockingCollection<StreetSegItem>();
+      var workerThreadsProgress = new WorkerThreadsProgress();
+
       var streetSegThreads = new List<StreetSegThread>();
       for (int i = 0; i < DB.NumberOfThreads; i++)
       {
-        streetSegThreads.Add(new StreetSegThread(_streetSegProgress, _workQueue));
+        streetSegThreads.Add(new StreetSegThread(workerThreadsProgress, workQueue));
       }
 
       var szIDReader = MySqlHelper.ExecuteReader(DB.ConnectionString, "SELECT ID FROM street_zip");
@@ -29,14 +29,15 @@ namespace RDFMatcher_NetCore
           szID = szIDReader.GetValue(0)
         };
 
-        _workQueue.Add(item);
+        workQueue.Add(item);
       }
       szIDReader.Close();
 
-      _workQueue.CompleteAdding();
-      while (_workQueue.IsCompleted == false)
+      workQueue.CompleteAdding();
+      while (workQueue.IsCompleted == false)
       {
-        Console.WriteLine($"Done: {_streetSegProgress.done}, Left: {_workQueue.Count}");
+        workerThreadsProgress.PrintProgress();
+        Log.Flush();
         Thread.Sleep(2000);
       }
     }

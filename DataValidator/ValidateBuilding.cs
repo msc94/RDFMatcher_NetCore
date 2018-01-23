@@ -38,7 +38,8 @@ namespace DataValidator
         "FROM building b " +
         " LEFT JOIN street_zip sz ON sz.ID = b.STREET_ZIP_ID " +
         " LEFT JOIN street s on s.ID = sz.STREET_ID " +
-        " LEFT JOIN zone z1 on s.ZONE_ID = z1.ID ";
+        " LEFT JOIN zone z1 on s.ZONE_ID = z1.ID " +
+        "WHERE b.AP_LAT IS NOT NULL AND b.AP_LNG IS NOT NULL;";
 
       Task.Run(() =>
       {

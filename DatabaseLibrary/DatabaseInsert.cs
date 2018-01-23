@@ -6,11 +6,11 @@ using System.Threading;
 
 namespace DatabaseLibrary
 {
-  class Database
+  class DatabaseInsert
   {
     readonly string _connectionString;
 
-    public Database(string connectionString)
+    public DatabaseInsert(string connectionString)
     {
       _connectionString = connectionString;
     }

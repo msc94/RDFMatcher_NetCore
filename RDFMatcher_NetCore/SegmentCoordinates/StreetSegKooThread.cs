@@ -20,49 +20,16 @@ namespace RDFMatcher_NetCore
   // 1. Evtl nur innerhalb von Segmenten aus RDF neue Punkte einfuegen?
   // 2. Segmente haben einen gemeinsamen Punkt... evtl kann man nach diesem sortieren?
 
-  class StreetSegKooThread
+  class StreetSegKooThread : WorkerThread<StreetSegKooItem>
   {
-    private readonly StreetSegKooProgress _streetSegKooProgress;
-    private readonly BlockingCollection<StreetSegKooItem> _workQueue;
-
-    private ThreadLocal<Database> _db = new ThreadLocal<Database>(
-      () =>
-      {
-        return new Database();
-      });
-
-
-    public StreetSegKooThread(StreetSegKooProgress streetSegKooProgress, BlockingCollection<StreetSegKooItem> workQueue)
+    public StreetSegKooThread(WorkerThreadsProgress workerThreadsProgress, BlockingCollection<StreetSegKooItem> workQueue)
+      : base(workerThreadsProgress, workQueue)
     {
-      _streetSegKooProgress = streetSegKooProgress;
-      _workQueue = workQueue;
-
-      new Thread(WorkLoop).Start();
     }
 
-    private void WorkLoop()
+    public override WorkResult Work(StreetSegKooItem segmentItem)
     {
-      while (!_workQueue.IsCompleted)
-      {
-        StreetSegKooItem item = null;
-        try
-        {
-          item = _workQueue.Take();
-        }
-        catch (InvalidOperationException) { }
-
-        if (item != null)
-        {
-          StreetSegKoo(item);
-        }
-      }
-    }
-
-    private void StreetSegKoo(StreetSegKooItem segmentItem)
-    {
-      Interlocked.Increment(ref _streetSegKooProgress.done);
-
-      var streetSegID = (int)segmentItem.segId;
+      var streetSegID = (int)segmentItem.SegmentId;
 
       var debugIds = new List<int> { 763, 259, 750 };
       if (debugIds.Contains(streetSegID))
@@ -86,13 +53,13 @@ namespace RDFMatcher_NetCore
           continue;
         }
 
-        addrItem.Scheme = segmentItem.scheme;
+        addrItem.Scheme = segmentItem.Scheme;
       }
 
       if (nldRdfAddrData.Count == 0)
       {
         // Console.WriteLine($"No NLD_RDF_DATA match for {streetSegID}");
-        return;
+        return WorkResult.Failed;
       }
 
       nldRdfAddrData = SortNldRdfAddrData(nldRdfAddrData);
@@ -108,14 +75,14 @@ namespace RDFMatcher_NetCore
 
       if (segments.Count == 0)
       {
-        Console.WriteLine("WARNING: segments array is empty!");
-        return;
+        Log.WriteLine("WARNING: segments array is empty!");
+        return WorkResult.Failed;
       }
 
       if (segments.Count > 200)
       {
         // Console.WriteLine("WARNING: segments array too big!");
-        return;
+        return WorkResult.Failed;
       }
 
 
@@ -135,12 +102,14 @@ namespace RDFMatcher_NetCore
         var latString = Utils.FloatToStringInvariantCulture(currentSegment.LAT, latFormat);
         var lngString = Utils.FloatToStringInvariantCulture(currentSegment.LON, lngFormat);
 
-        _db.Value.InsertKoo(segmentItem.segId, i, pos, latString, lngString);
+        _db.InsertKoo(segmentItem.SegmentId, i, pos, latString, lngString);
       }
 
       var middleSegment = segments[segments.Count / 2];
-      _db.Value.UpdateSeg(segmentItem.segId, middleSegment.LAT, middleSegment.LON);
-      _db.Value.InsertKooGroup(segmentItem.segId);
+      _db.UpdateSeg(segmentItem.SegmentId, middleSegment.LAT, middleSegment.LON);
+      _db.InsertKooGroup(segmentItem.SegmentId);
+
+      return WorkResult.Successful;
     }
 
     private List<RdfAddr> SortNldRdfAddrData(List<RdfAddr> nldRdfAddrData)
@@ -164,7 +133,7 @@ namespace RDFMatcher_NetCore
 
     private IEnumerable<Segment> GetSegmentsForAddr(RdfAddr addr)
     {
-      var segments = _db.Value.GetRdfSeg(addr.RoadLinkId);
+      var segments = _db.GetRdfSeg(addr.RoadLinkId);
 
       if (addr.SwappedHno)
         segments.Reverse();
@@ -242,11 +211,11 @@ namespace RDFMatcher_NetCore
 
     private List<int> GetRoadLinkId(int streetSegId)
     {
-      var roadLinkIds = _db.Value.GetMatchedRoadLinkIdsForStreetSeg(streetSegId);
+      var roadLinkIds = _db.GetMatchedRoadLinkIdsForStreetSeg(streetSegId);
 
       if (roadLinkIds.Count == 0)
       {
-        Console.WriteLine($"No ROAD_LINK_ID match for street segment {streetSegId}");
+        Log.WriteLine($"No ROAD_LINK_ID match for street segment {streetSegId}");
       }
 
       return roadLinkIds;
@@ -258,7 +227,7 @@ namespace RDFMatcher_NetCore
       foreach (var id in roadLinkIds)
       {
         // Get Data from RdfAddr
-        RdfAddr newItem = _db.Value.GetRdfAddr(id);
+        RdfAddr newItem = _db.GetRdfAddr(id);
 
         newItem.SwappedHno = false;
 
@@ -282,13 +251,11 @@ namespace RDFMatcher_NetCore
       return result;
     }
 
-    
-
     private bool Match(StreetSegKooItem seg, RdfAddr addr)
     {
       // TODO: Handle Scheme
       int leftStart = 0, leftEnd = 0, rightStart = 0, rightEnd = 0;
-      switch (seg.scheme)
+      switch (seg.Scheme)
       {
         case 1:
           {
@@ -349,13 +316,13 @@ namespace RDFMatcher_NetCore
       }
 
       // Add a tolerance to the segments house numbers
-      int hnStart = seg.hnStart;
-      if (seg.hnStart == 2)
-        hnStart = seg.hnStart - 1;
-      else if (seg.hnStart > 2)
-        hnStart = seg.hnStart - 2;
+      int hnStart = seg.HouseNumberStart;
+      if (seg.HouseNumberStart == 2)
+        hnStart = seg.HouseNumberStart - 1;
+      else if (seg.HouseNumberStart > 2)
+        hnStart = seg.HouseNumberStart - 2;
 
-      int hnEnd = seg.hnEnd + 3;
+      int hnEnd = seg.HouseNumberEnd + 3;
 
       if (hnStart <= leftStart && hnEnd >= leftEnd)
         return true;
@@ -366,5 +333,6 @@ namespace RDFMatcher_NetCore
       return false;
     }
 
+   
   }
 }

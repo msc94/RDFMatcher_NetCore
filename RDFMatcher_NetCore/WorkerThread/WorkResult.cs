@@ -3,9 +3,7 @@
   enum WorkResult
   {
     Successful,
-
-    TooManyMatches,
-    NoMatch
+    Failed
   }
 }
 

@@ -9,15 +9,15 @@ using MySql.Data.MySqlClient;
 
 namespace RDFMatcher_NetCore
 {
-  class Match
+  class MatchAddress
   {
     public static void DoMatch()
     {
       string commandText = "SELECT b.ID as B_ID, b.HNO, b.HNO_EXTENSION, sz.ID as SZ_ID, sz.ZIP, s.NAME " +
                            "FROM building b " +
-                           "  LEFT JOIN street_zip sz ON sz.ID = b.STREET_ZIP_ID " +
+                           "  LEFT JOIN street_zip sz ON (b.STREET_ZIP_ID = sz.ID) " +
                            "  LEFT JOIN street s ON s.id = sz.STREET_ID " +
-                           "WHERE b.ID NOT IN (SELECT BUILDING_ID FROM match_test)";
+                           "WHERE b.ID NOT IN (SELECT BUILDING_ID FROM match_building);";
 
 
       var matchingThreadsProgress = new WorkerThreadsProgress();
@@ -36,15 +36,13 @@ namespace RDFMatcher_NetCore
         {
           var item = new MatchAddressItem
           {
-            BuildingId = reader.GetValue(reader.GetOrdinal("B_ID")),
-            StreetZipId = reader.GetValue(reader.GetOrdinal("SZ_ID")),
-            HouseNumber = reader.GetString("HNO"),
-            HouseNumberExtension = reader.GetString("HNO_EXTENSION"),
+            BuildingId = reader.GetInt32("B_ID"),
+            StreetZipId = reader.GetInt32("SZ_ID"),
             Zip = reader.GetString("ZIP"),
-            StreetName = reader.GetString("NAME")
+            StreetName = reader.GetString("NAME"),
+            HouseNumber = reader.GetString("HNO"),
+            HouseNumberExtension = reader.GetString("HNO_EXTENSION")
           };
-
-          item.HouseNumber = item.HouseNumber.TrimStart('0');
 
           matchingThreadWorkQueue.Add(item);
         }
@@ -57,14 +55,9 @@ namespace RDFMatcher_NetCore
       while (matchingThreadWorkQueue.IsCompleted == false)
       {
         matchingThreadsProgress.PrintProgress();
+        Log.Flush();
         Thread.Sleep(1000);
       }
-
-      foreach (var matchingThread in matchingThreads)
-      {
-        matchingThread.FlushInsertBuffer();
-      }
-
     }
   }
 }

@@ -14,7 +14,7 @@ namespace RDFMatcher_NetCore
 {
   abstract class WorkerThread<T>
   {
-    protected Database _db = new Database();
+    protected Database _db = new Database(DB.ConnectionString);
 
     private WorkerThreadsProgress _workerThreadProgress;
     private BlockingCollection<T> _workQueue;
@@ -40,20 +40,10 @@ namespace RDFMatcher_NetCore
 
         if (item != null)
         {
-          try
+          var result = Work(item);
+          if (result == WorkResult.Successful)
           {
-            var result = Work(item);
-            if (result == WorkResult.Successful)
-            {
-              _workerThreadProgress.IncrementItemsSuccessful();
-            }
-          }
-          catch (Exception e)
-          {
-            Trace.TraceWarning("Worker thread: Work() failed on item:\n" +
-              item.ToString() + "\n" +
-              "with error:\n" + 
-              e.Message);
+            _workerThreadProgress.IncrementItemsSuccessful();
           }
 
           _workerThreadProgress.IncrementItemsDone();

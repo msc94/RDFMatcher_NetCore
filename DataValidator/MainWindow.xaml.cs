@@ -27,20 +27,20 @@ namespace DataValidator
 
     public static string connectionString;
 
-    private IRunMode _runMode = new ValidateStreetSeg();
+    private IRunMode _runMode = new ValidateBuilding();
 
     public MainWindow()
     {
       InitializeComponent();
 
-      bool local = false;
+      bool local = true;
       if (local)
       {
         connectionString =
           "server=localhost;" +
           "uid=root;" +
           "pwd=bloodrayne;" +
-          "database=pol;" +
+          "database=nor;" +
           "connection timeout=1000;" +
           "command timeout=1000;";
       }

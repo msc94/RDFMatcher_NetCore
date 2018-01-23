@@ -2,14 +2,14 @@
 {
   class MatchAddressItem
   {
-    public object StreetZipId;
-    public object BuildingId;
+    public int BuildingId;
+    public int StreetZipId;
 
     public string Zip;
     public string StreetName;
+
     public string HouseNumber;
     public string HouseNumberExtension;
-    public string StreetType;
   }
 }
 
