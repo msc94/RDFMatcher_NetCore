@@ -8,8 +8,7 @@ namespace RDFMatcher_NetCore
     public object BuildingId;
     public object RoadLinkId;
 
-    public string Hno;
-    public string HnoExtension;
+    public string Address;
     public Coordinates<string> Coordinates;
   }
 }

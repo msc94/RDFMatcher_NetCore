@@ -9,6 +9,7 @@
     public string StreetName;
     public string HouseNumber;
     public string HouseNumberExtension;
+    public string StreetType;
   }
 }
 

@@ -10,6 +10,7 @@ namespace RDFMatcher_NetCore
     public int RoadLinkId;
     public string Zip;
     public string StreetBaseName;
+    public string StreetType;
     public string Address;
     public Coordinates<string> Coordinates;
   }

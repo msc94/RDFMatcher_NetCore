@@ -44,6 +44,14 @@ namespace DataImporter.Countries
     "command timeout=1000;" +
     "CharSet=utf8";
 
+    public static List<StreetAlias> GetEntry(Dictionary<string, List<StreetAlias>> dic, string key)
+    {
+      if (!dic.ContainsKey(key))
+        return new List<StreetAlias>();
+
+      return dic[key];
+    }
+
     public static List<string> GetEntry(Dictionary<string, List<string>> dic, string key)
     {
       if (!dic.ContainsKey(key))
@@ -52,7 +60,42 @@ namespace DataImporter.Countries
       return dic[key];
     }
 
-    public static Dictionary<string, List<string>> ReadAliases(string path, bool readThree = false)
+    public static Dictionary<string, List<StreetAlias>> ReadStreetAliases(string path)
+    {
+      var result = new Dictionary<string, List<StreetAlias>>();
+
+      using (var reader = new StreamReader(path, Encoding.UTF8))
+      {
+        // Skip header
+        string header = reader.ReadLine();
+
+        string line;
+        while ((line = reader.ReadLine()) != null)
+        {
+          if (!line.Contains("|"))
+            continue;
+
+          string[] values = line.Split('|');
+          string key = values[1];
+
+          if (!result.ContainsKey(key))
+            result[key] = new List<StreetAlias>();
+
+          string name = values[2];
+          string type = values[3];
+
+          result[key].Add(new StreetAlias
+          {
+            Name = name,
+            Type = type
+          });
+        }
+      }
+
+      return result;
+    }
+
+    public static Dictionary<string, List<string>> ReadAliases(string path)
     {
       Dictionary<string, List<string>> result = new Dictionary<string, List<string>>();
 
@@ -70,9 +113,6 @@ namespace DataImporter.Countries
           string[] values = line.Split('|');
           string key = values[1];
           string value = values[2];
-
-          if (readThree)
-            value += values[3];
 
           if (!result.ContainsKey(key))
             result[key] = new List<string>();
@@ -92,7 +132,7 @@ namespace DataImporter.Countries
       MySqlHelper.ExecuteNonQuery(connectionString, "TRUNCATE TABLE zone;");
 
 
-      var streetAliasesDic = ReadAliases(@"G:\SQL\NZ\PAF2_V2017Q3V01\PAF2_V2017Q3V01_ALTERNATIVE_STREET_NAMES.csv", true);
+      var streetAliasesDic = ReadStreetAliases(@"G:\SQL\NZ\PAF2_V2017Q3V01\PAF2_V2017Q3V01_ALTERNATIVE_STREET_NAMES.csv");
       var suburbAliasesDic = ReadAliases(@"G:\SQL\NZ\PAF2_V2017Q3V01\PAF2_V2017Q3V01_ALTERNATIVE_SUBURB_NAMES.csv");
       var townAliasesDic = ReadAliases(@"G:\SQL\NZ\PAF2_V2017Q3V01\PAF2_V2017Q3V01_ALTERNATIVE_TOWN_CITY_NAMES.csv");
 
@@ -132,7 +172,8 @@ namespace DataImporter.Countries
               Zip = values[fieldIndexes["POSTCODE"]],
               Street = new Street
               {
-                Name = values[fieldIndexes["STREET_NAME"]] + values[fieldIndexes["STREET_TYPE"]],
+                Name = values[fieldIndexes["STREET_NAME"]],
+                Type = values[fieldIndexes["STREET_TYPE"]],
                 Aliases = streetAliases
               }
             }

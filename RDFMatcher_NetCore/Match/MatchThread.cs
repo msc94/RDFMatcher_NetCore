@@ -22,7 +22,7 @@ namespace RDFMatcher_NetCore
 
     public override WorkResult Work(MatchAddressItem item)
     {
-      var pointsForAddress = _db.GetRdfPointsForAddress(item.Zip, item.StreetName, item.HouseNumber, item.HouseNumberExtension);
+      var pointsForAddress = _db.GetRdfPointsForAddress(item.Zip, item.StreetName, item.HouseNumber + item.HouseNumberExtension);
       var numMatches = pointsForAddress.Count;
 
       if (numMatches > 1)
@@ -32,10 +32,9 @@ namespace RDFMatcher_NetCore
 
       foreach (var point in pointsForAddress)
       {
-        var coordinates = point.Coordinates;
-        _insertBuffer.Insert(new MatchedAddressItem()
+        _db.InsertMatchedItem(new MatchedAddressItem()
         {
-          Coordinates = coordinates,
+          Address = item.HouseNumber +  item.HouseNumberExtension,
           RoadLinkId = point.RoadLinkId,
           BuildingId = item.BuildingId
         });

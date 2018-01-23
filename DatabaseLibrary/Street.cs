@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace DataImporter
+namespace DatabaseLibrary
 {
   public class StreetAlias
   {

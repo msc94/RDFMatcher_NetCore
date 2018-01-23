@@ -11,16 +11,13 @@ namespace RDFMatcher_NetCore
 {
   class Match
   {
-    private static WorkerThreadsProgress _workerThreadsProgress = new WorkerThreadsProgress();
-    private static BlockingCollection<MatchAddressItem> _workQueue = new BlockingCollection<MatchAddressItem>();
-
     public static void DoMatch()
     {
-      string commandText = "SELECT sz.ID as SZ_ID, sz.ZIP, s.NAME " +
-                           "FROM street_zip sz " +
+      string commandText = "SELECT b.ID as B_ID, b.HNO, b.HNO_EXTENSION, sz.ID as SZ_ID, sz.ZIP, s.NAME " +
+                           "FROM building b " +
+                           "  LEFT JOIN street_zip sz ON sz.ID = b.STREET_ZIP_ID " +
                            "  LEFT JOIN street s ON s.id = sz.STREET_ID " +
-                           "";
-      // "WHERE sz.ID NOT IN (SELECT street_zip_id FROM building)";
+                           "WHERE b.ID NOT IN (SELECT BUILDING_ID FROM match_test)";
 
 
       var matchingThreadsProgress = new WorkerThreadsProgress();
@@ -39,22 +36,27 @@ namespace RDFMatcher_NetCore
         {
           var item = new MatchAddressItem
           {
+            BuildingId = reader.GetValue(reader.GetOrdinal("B_ID")),
             StreetZipId = reader.GetValue(reader.GetOrdinal("SZ_ID")),
+            HouseNumber = reader.GetString("HNO"),
+            HouseNumberExtension = reader.GetString("HNO_EXTENSION"),
             Zip = reader.GetString("ZIP"),
-            StreetName = reader.GetString("NAME"),
+            StreetName = reader.GetString("NAME")
           };
 
-          _workQueue.Add(item);
+          item.HouseNumber = item.HouseNumber.TrimStart('0');
+
+          matchingThreadWorkQueue.Add(item);
         }
         catch (SqlNullValueException)
         {
         }
       }
 
-      _workQueue.CompleteAdding();
-      while (_workQueue.IsCompleted == false)
+      matchingThreadWorkQueue.CompleteAdding();
+      while (matchingThreadWorkQueue.IsCompleted == false)
       {
-        _workerThreadsProgress.PrintProgress();
+        matchingThreadsProgress.PrintProgress();
         Thread.Sleep(1000);
       }
 

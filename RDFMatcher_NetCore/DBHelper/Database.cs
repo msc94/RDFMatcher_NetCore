@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using MySql.Data.MySqlClient;
 using RDFMatcher_NetCore.Utilities;
 
 namespace RDFMatcher_NetCore.DBHelper
@@ -8,18 +9,32 @@ namespace RDFMatcher_NetCore.DBHelper
   class Database
   {
     // Settings
-    private readonly string _rdfAddrTable = "POL_RDF_ADDR";
-    private readonly string _rdfSegTable = "POL_RDF_SEG";
-    private readonly string _rdfPointTable = "POL_RDF_POINT";
+    private readonly string _rdfAddrTable = "NOR_RDF_ADDR";
+    private readonly string _rdfSegTable = "NOR_RDF_SEG";
+    private readonly string _rdfPointTable = "NOR_RDF_POINT";
 
     private readonly int _latDecimalPosition = 2;
     private readonly int _lngDecimalPosition = 2;
 
     private readonly CommandBuffer _commandBuffer = new CommandBuffer();
 
-    internal void InsertMatchedItems(IEnumerable<MatchedAddressItem> items)
+    public void InsertMatchedItems(IEnumerable<MatchedAddressItem> items)
     {
-      throw new NotImplementedException();
+      foreach (var item in items)
+      {
+      }
+    }
+
+    public void InsertMatchedItem(MatchedAddressItem item)
+    {
+      MySqlHelper.ExecuteNonQuery(DB.ConnectionString,
+        "INSERT INTO match_test VALUES (@1, @2, @3)",
+        new MySqlParameter[]
+        {
+          new MySqlParameter("@1", item.RoadLinkId),
+          new MySqlParameter("@2", item.Address),
+          new MySqlParameter("@3", item.BuildingId),
+        });
     }
 
     public RdfAddr GetRdfAddr(int roadLinkID)
@@ -124,19 +139,18 @@ namespace RDFMatcher_NetCore.DBHelper
     }
 
     // Be careful when this function returns more than one item!
-    public List<RdfPointItem> GetRdfPointsForAddress(string zip, string streetName, string houseNumber, string houseNumberExtension)
+    public List<RdfPointItem> GetRdfPointsForAddress(string zip, string streetName, string address)
     {
       var reader = _commandBuffer.ExececuteReader(
         "SELECT addr.ROAD_LINK_ID, addr.LEFT_POSTAL_CODE, addr.STREET_BASE_NAME, pt.ADDRESS, pt.LAT, pt.LNG " +
-        $"FROM {_rdfAddrTable} " +
+        $"FROM {_rdfAddrTable} addr" +
         $" LEFT JOIN {_rdfPointTable} pt using (ROAD_LINK_ID) " +
         "WHERE " +
         " addr.LEFT_POSTAL_CODE = @1 AND " +
-        " addr.STREET_BASE_NAME = @2 AND " +
-        " pt.HNO = @3 AND " +
-        " pt.HNO_EXTENSION = @4 " +
-        " AND pt.LAT IS NOT NULL AND pt.LNG IS NOT NULL ",
-        zip, streetName, houseNumber, houseNumberExtension);
+        " UPPER(CONCAT(addr.STREET_BASE_NAME, addr.STREET_TYPE)) = @2 AND " +
+        " pt.ADDRESS = @3 AND " +
+        " pt.LAT IS NOT NULL AND pt.LNG IS NOT NULL ",
+        zip, streetName, address);
 
       List<RdfPointItem> coordinateList = new List<RdfPointItem>();
       using (reader)
