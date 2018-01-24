@@ -206,7 +206,7 @@ namespace RDFMatcher_NetCore.DBHelper
       return roadLinkIds;
     }
 
-    public List<Segment> GetRdfSeg(int roadLinkId)
+    public Segment GetRdfSeg(int roadLinkId)
     {
       var reader = MySqlHelper.ExecuteReader(_connectionString,
         "SELECT LAT, LON " +
@@ -218,7 +218,7 @@ namespace RDFMatcher_NetCore.DBHelper
           new MySqlParameter("@1", roadLinkId)
         });
 
-      var segments = new List<Segment>();
+      var segment = new Segment();
       using (reader)
       {
         while (reader.Read())
@@ -228,16 +228,19 @@ namespace RDFMatcher_NetCore.DBHelper
 
           // Add the decimal point to the lat/lon string
           latString = latString.Insert(_latDecimalPosition, ".");
-          lonString = lonString.Insert(_lngDecimalPosition, ".");
+          if (lonString.Length == 6)
+            lonString = lonString.Insert(_lngDecimalPosition - 1, ".");
+          else
+            lonString = lonString.Insert(_lngDecimalPosition, ".");
 
-          segments.Add(new Segment()
+          segment.Coordinates.Add(new SegmentCoordinate()
           {
-            LAT = Utils.ParseFloatInvariantCulture(latString),
-            LON = Utils.ParseFloatInvariantCulture(lonString)
+            Lat = Utils.ParseFloatInvariantCulture(latString),
+            Lng = Utils.ParseFloatInvariantCulture(lonString)
           });
         }
       }
-      return segments;
+      return segment;
     }
 
     public void InsertKoo(object segmentId, int ord, int pos, string lat, string lon)

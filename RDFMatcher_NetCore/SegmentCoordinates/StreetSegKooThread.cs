@@ -31,10 +31,6 @@ namespace RDFMatcher_NetCore
     {
       var streetSegID = (int)segmentItem.SegmentId;
 
-      var debugIds = new List<int> { 763, 259, 750 };
-      if (debugIds.Contains(streetSegID))
-        Debugger.Break();
-
       // Get matched ROAD_LINK_ID
       var roadLinkIds = GetRoadLinkId(streetSegID);
 
@@ -49,7 +45,7 @@ namespace RDFMatcher_NetCore
 
         if (!Match(segmentItem, addrItem))
         {
-          nldRdfAddrData.RemoveAt(i);
+          // nldRdfAddrData.RemoveAt(i);
           continue;
         }
 
@@ -67,50 +63,100 @@ namespace RDFMatcher_NetCore
       List<Segment> segments = new List<Segment>();
       foreach (var addr in nldRdfAddrData)
       {
-        segments.AddRange(GetSegmentsForAddr(addr));
+        segments.Add(GetSegmentsForAddr(addr));
       }
 
-      segments = RemoveDuplicates(segments);
-      segments = AddSegmentsInBetween(segments);
-
-      if (segments.Count == 0)
+      var coordinates = new List<SegmentCoordinate>();
+      foreach (var segment in segments)
       {
-        Log.WriteLine("WARNING: segments array is empty!");
-        return WorkResult.Failed;
+        coordinates.AddRange(segment.Coordinates);
+        // segment.AddCoordinatesInBetween();
       }
 
-      if (segments.Count > 200)
-      {
-        // Console.WriteLine("WARNING: segments array too big!");
-        return WorkResult.Failed;
-      }
+      // TODO: What is a better start-segment?
+      //List<Segment> segmentList = new List<Segment>(segments);
+      //while (segmentList.Count > 0)
+      //{
+      //  // Build graph from this segment
+      //  Segment startSegment = segmentList[0];
+      //  segmentList.RemoveAt(0);
+      //  startSegment.AddChildren(segmentList);
+
+      //  var addedSegments = new List<Segment>(segments.Where((a) => a.InGraph));
+      //  addedSegments.Sort((a, b) =>
+      //  {
+      //    return a.SegmentLength() > b.SegmentLength() ? -1 : 1;
+      //  });
+
+      //  var longestSegment = addedSegments[0];
+      //  coordinates.AddRange(startSegment.GetCoordinates());
+      //}
+
+      coordinates = RemoveDuplicates(coordinates);
+      // segments = ExplodeDuplicates(segments);
+      // coordinates = AddSegmentsInBetween(coordinates);
+
+      //if (segments.Count == 0)
+      //{
+      //  Log.WriteLine("WARNING: segments array is empty!");
+      //  return WorkResult.Failed;
+      //}
+
+      //if (segments.Count > 200)
+      //{
+      //  // Console.WriteLine("WARNING: segments array too big!");
+      //  return WorkResult.Failed;
+      //}
 
 
       const string latFormat = "00.00000";
       const string lngFormat = "00.00000";
 
-      for (int i = 0; i < segments.Count; i++)
+      for (int i = 0; i < coordinates.Count; i++)
       {
         // pos: 1: Begin, 2: middle, 3: end
         int pos = 2;
         if (i == 0)
           pos = 1;
-        else if (i == segments.Count - 1)
+        else if (i == coordinates.Count - 1)
           pos = 3;
 
-        var currentSegment = segments[i];
-        var latString = Utils.FloatToStringInvariantCulture(currentSegment.LAT, latFormat);
-        var lngString = Utils.FloatToStringInvariantCulture(currentSegment.LON, lngFormat);
+        var currentSegment = coordinates[i];
+        var latString = Utils.FloatToStringInvariantCulture(currentSegment.Lat, latFormat);
+        var lngString = Utils.FloatToStringInvariantCulture(currentSegment.Lng, lngFormat);
 
         _db.InsertKoo(segmentItem.SegmentId, i, pos, latString, lngString);
       }
 
-      var middleSegment = segments[segments.Count / 2];
-      _db.UpdateSeg(segmentItem.SegmentId, middleSegment.LAT, middleSegment.LON);
+      var middleSegment = coordinates[coordinates.Count / 2];
+      _db.UpdateSeg(segmentItem.SegmentId, middleSegment.Lat, middleSegment.Lng);
       _db.InsertKooGroup(segmentItem.SegmentId);
 
       return WorkResult.Successful;
     }
+
+    //private static Random _randomAngle = new Random();
+    //private List<Segment> ExplodeDuplicates(List<Segment> segments)
+    //{
+    //  var result = new List<Segment>();
+
+    //  foreach (var segment in segments)
+    //  {
+    //    if (result.Contains(segment) == false)
+    //    {
+    //      double randomAngle = _randomAngle.NextDouble() * 2 * Math.PI;
+    //      double pushDistance = 0.00005;
+    //      double randomX = Math.Cos(randomAngle) * pushDistance;
+    //      double randomY = Math.Sin(randomAngle) * pushDistance;
+
+    //      segment.Lat += (float) randomX;
+    //      segment.LON += (float) randomY;
+    //    }
+    //    result.Add(segment);
+    //  }
+
+    //  return result;
+    //}
 
     private List<RdfAddr> SortNldRdfAddrData(List<RdfAddr> nldRdfAddrData)
     {
@@ -118,9 +164,9 @@ namespace RDFMatcher_NetCore
       return nldRdfAddrData;
     }
 
-    private List<Segment> RemoveDuplicates(List<Segment> segments)
+    private List<SegmentCoordinate> RemoveDuplicates(List<SegmentCoordinate> segments)
     {
-      var result = new List<Segment>();
+      var result = new List<SegmentCoordinate>();
 
       foreach (var segment in segments)
       {
@@ -131,84 +177,17 @@ namespace RDFMatcher_NetCore
       return result;
     }
 
-    private IEnumerable<Segment> GetSegmentsForAddr(RdfAddr addr)
+    private Segment GetSegmentsForAddr(RdfAddr addr)
     {
-      var segments = _db.GetRdfSeg(addr.RoadLinkId);
+      var segment = _db.GetRdfSeg(addr.RoadLinkId);
 
-      if (addr.SwappedHno)
-        segments.Reverse();
+      // if (addr.SwappedHno)
+      //  segment.Coordinates.Reverse();
 
-      return segments;
+      return segment;
     }
 
-    // https://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula
-    private float DistanceBetweenInKilometers(Segment s1, Segment s2)
-    {
-      float earthRadius = 6371.0f;
-
-      float dLat = (s2.LAT - s1.LAT).ToRadians();
-      float dLon = (s2.LON - s1.LON).ToRadians();
-
-      float a = (float)
-          (Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
-          Math.Cos(s1.LAT) * Math.Cos(s2.LAT) *
-          Math.Sin(dLon / 2) * Math.Sin(dLon / 2));
-
-      float c = 2.0f * (float)Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-      float distance = earthRadius * c; // Distance in km
-
-      return distance;
-    }
-
-    private const float minDistance = 0.011f;
-    private List<Segment> AddSegmentsInBetween(List<Segment> segments)
-    {
-      var result = new List<Segment>();
-
-      for (int i = 0; i < segments.Count; i++)
-      {
-        var currentSegment = segments[i];
-
-        // Always add the current segment
-        // This will also include the last one
-        result.Add(currentSegment);
-
-        // Check if we have a following segment
-        if (i + 1 < segments.Count)
-        {
-          var nextSegment = segments[i + 1];
-          float distance = DistanceBetweenInKilometers(currentSegment, nextSegment);
-          if (distance > minDistance)
-          {
-            int numSegmentsToAdd = (int)(distance / minDistance);
-            result.AddRange(CreateSegmentsBetween(currentSegment, nextSegment, distance, numSegmentsToAdd));
-          }
-        }
-      }
-
-      return result;
-    }
-
-    private List<Segment> CreateSegmentsBetween(Segment s1, Segment s2, float distance, int numSegmentsToAdd)
-    {
-      float forwardLat = (s2.LAT - s1.LAT) / (numSegmentsToAdd + 1);
-      float forwardLon = (s2.LON - s1.LON) / (numSegmentsToAdd + 1);
-
-      float startLat = s1.LAT;
-      float startLon = s1.LON;
-
-      var newSegments = new List<Segment>();
-      for (int i = 1; i <= numSegmentsToAdd; i++) // i = 0 would be our starting point
-      {
-        newSegments.Add(new Segment
-        {
-          LAT = startLat + forwardLat * i,
-          LON = startLon + forwardLon * i
-        });
-      }
-      return newSegments;
-    }
-
+    
     private List<int> GetRoadLinkId(int streetSegId)
     {
       var roadLinkIds = _db.GetMatchedRoadLinkIdsForStreetSeg(streetSegId);
@@ -254,7 +233,7 @@ namespace RDFMatcher_NetCore
     private bool Match(StreetSegKooItem seg, RdfAddr addr)
     {
       // TODO: Handle Scheme
-      int leftStart = 0, leftEnd = 0, rightStart = 0, rightEnd = 0;
+      int leftStart = -1, leftEnd = -1, rightStart = -1, rightEnd = -1;
       switch (seg.Scheme)
       {
         case 1:
@@ -264,8 +243,8 @@ namespace RDFMatcher_NetCore
             {
               if (addr.LeftHnoStart % 2 != 0 || addr.LeftHnoEnd % 2 != 0)
               {
-                leftStart = addr.LeftHnoStart.GetValueOrDefault(0);
-                leftEnd = addr.LeftHnoEnd.GetValueOrDefault(0);
+                leftStart = addr.LeftHnoStart.GetValueOrDefault(-1);
+                leftEnd = addr.LeftHnoEnd.GetValueOrDefault(-1);
               }
             }
 
@@ -273,8 +252,8 @@ namespace RDFMatcher_NetCore
             {
               if (addr.RightHnoStart % 2 != 0 || addr.RightHnoEnd % 2 != 0)
               {
-                rightStart = addr.RightHnoStart.GetValueOrDefault(0);
-                rightEnd = addr.RightHnoEnd.GetValueOrDefault(0);
+                rightStart = addr.RightHnoStart.GetValueOrDefault(-1);
+                rightEnd = addr.RightHnoEnd.GetValueOrDefault(-1);
               }
             }
 
@@ -288,8 +267,8 @@ namespace RDFMatcher_NetCore
             {
               if (addr.LeftHnoStart % 2 == 0 || addr.LeftHnoEnd % 2 == 0)
               {
-                leftStart = addr.LeftHnoStart.GetValueOrDefault(0);
-                leftEnd = addr.LeftHnoEnd.GetValueOrDefault(0);
+                leftStart = addr.LeftHnoStart.GetValueOrDefault(-1);
+                leftEnd = addr.LeftHnoEnd.GetValueOrDefault(-1);
               }
             }
 
@@ -297,8 +276,8 @@ namespace RDFMatcher_NetCore
             {
               if (addr.RightHnoStart % 2 == 0 || addr.RightHnoEnd % 2 == 0)
               {
-                rightStart = addr.RightHnoStart.GetValueOrDefault(0);
-                rightEnd = addr.RightHnoEnd.GetValueOrDefault(0);
+                rightStart = addr.RightHnoStart.GetValueOrDefault(-1);
+                rightEnd = addr.RightHnoEnd.GetValueOrDefault(-1);
               }
             }
 
@@ -307,10 +286,10 @@ namespace RDFMatcher_NetCore
           }
         case 3:
           {
-            leftStart = addr.LeftHnoStart.GetValueOrDefault(0);
-            leftEnd = addr.LeftHnoEnd.GetValueOrDefault(0);
-            rightStart = addr.RightHnoStart.GetValueOrDefault(0);
-            rightEnd = addr.RightHnoEnd.GetValueOrDefault(0);
+            leftStart = addr.LeftHnoStart.GetValueOrDefault(-1);
+            leftEnd = addr.LeftHnoEnd.GetValueOrDefault(-1);
+            rightStart = addr.RightHnoStart.GetValueOrDefault(-1);
+            rightEnd = addr.RightHnoEnd.GetValueOrDefault(-1);
             break;
           }
       }

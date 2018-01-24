@@ -21,7 +21,9 @@ namespace RDFMatcher_NetCore
         streetSegThreads.Add(new StreetSegThread(workerThreadsProgress, workQueue));
       }
 
-      var szIDReader = MySqlHelper.ExecuteReader(DB.ConnectionString, "SELECT ID FROM street_zip");
+      var szIDReader = MySqlHelper.ExecuteReader(DB.ConnectionString, 
+        "SELECT ID FROM street_zip " +
+        "WHERE ID NOT IN (SELECT STREET_ZIP_ID FROM street_seg);");
       while (szIDReader.Read())
       {
         StreetSegItem item = new StreetSegItem

@@ -27,7 +27,7 @@ namespace DataValidator
 
     public static string connectionString;
 
-    private IRunMode _runMode = new ValidateBuilding();
+    private IRunMode _runMode = new ValidateStreetSeg();
 
     public MainWindow()
     {

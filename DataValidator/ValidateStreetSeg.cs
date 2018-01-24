@@ -17,6 +17,7 @@ namespace DataValidator
     public string hnEnd;
     public string name;
     public string coordinates;
+    public string zip;
   }
 
   class ValidateStreetSeg : IRunMode
@@ -29,7 +30,7 @@ namespace DataValidator
     public void LoadEntries()
     {
       const string getEntry =
-        "SELECT ss.ID, HN_START, HN_END, s.NAME, COORDINATES " +
+        "SELECT ss.ID, HN_START, HN_END, s.NAME, sz.ZIP, COORDINATES " +
         "FROM street_seg ss " +
         "  LEFT JOIN street_zip sz ON sz.ID = ss.STREET_ZIP_ID " +
         "  LEFT JOIN street s on s.ID = sz.STREET_ID " +
@@ -38,6 +39,7 @@ namespace DataValidator
 
       Task.Run(() =>
       {
+        _entries.Clear();
         var reader = MySqlHelper.ExecuteReader(MainWindow.connectionString, getEntry);
         while (reader.Read())
         {
@@ -47,6 +49,7 @@ namespace DataValidator
             hnStart = reader.GetString("HN_START"),
             hnEnd = reader.GetString("HN_END"),
             name = reader.GetString("NAME"),
+            zip = reader.GetString("ZIP"),
             coordinates = reader.GetString("COORDINATES")
           });
         }
@@ -63,7 +66,7 @@ namespace DataValidator
 
     public void FillMap(Map map, Label streetLabel)
     {
-      streetLabel.Content = _currentEntry.id + ":" + _currentEntry.name + " " + _currentEntry.hnStart + " - " + _currentEntry.hnEnd;
+      streetLabel.Content = _currentEntry.id + ": " + _currentEntry.zip + " " + _currentEntry.name + " " + _currentEntry.hnStart + " - " + _currentEntry.hnEnd;
       var newLocations = new List<Location>();
       var coordinates = _currentEntry.coordinates.Split('@');
       foreach (var coordinate in coordinates)
