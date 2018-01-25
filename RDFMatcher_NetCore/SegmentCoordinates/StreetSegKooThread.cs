@@ -69,28 +69,22 @@ namespace RDFMatcher_NetCore
       var coordinates = new List<SegmentCoordinate>();
       foreach (var segment in segments)
       {
-        coordinates.AddRange(segment.Coordinates);
         // segment.AddCoordinatesInBetween();
+        segment.Coordinates = Segment.AddCoordinatesInBetween(segment.Coordinates);
       }
 
-      // TODO: What is a better start-segment?
-      //List<Segment> segmentList = new List<Segment>(segments);
-      //while (segmentList.Count > 0)
-      //{
-      //  // Build graph from this segment
-      //  Segment startSegment = segmentList[0];
-      //  segmentList.RemoveAt(0);
-      //  startSegment.AddChildren(segmentList);
+      List<Segment> segmentList = new List<Segment>(segments);
+      // while (segmentList.Count > 0)
+      {
+        // Build graph from this segment
+        Segment startSegment = segmentList[0];
+        segmentList.RemoveAt(0);
 
-      //  var addedSegments = new List<Segment>(segments.Where((a) => a.InGraph));
-      //  addedSegments.Sort((a, b) =>
-      //  {
-      //    return a.SegmentLength() > b.SegmentLength() ? -1 : 1;
-      //  });
+        startSegment.AddChildren(segmentList);
 
-      //  var longestSegment = addedSegments[0];
-      //  coordinates.AddRange(startSegment.GetCoordinates());
-      //}
+        var fullSegmentCoordinates = startSegment.GetCoordinates();
+        coordinates.AddRange(fullSegmentCoordinates);
+      }
 
       coordinates = RemoveDuplicates(coordinates);
       // segments = ExplodeDuplicates(segments);
@@ -101,8 +95,7 @@ namespace RDFMatcher_NetCore
       //  Log.WriteLine("WARNING: segments array is empty!");
       //  return WorkResult.Failed;
       //}
-
-      //if (segments.Count > 200)
+      //if (segments.Count > 1000)
       //{
       //  // Console.WriteLine("WARNING: segments array too big!");
       //  return WorkResult.Failed;
@@ -180,14 +173,15 @@ namespace RDFMatcher_NetCore
     private Segment GetSegmentsForAddr(RdfAddr addr)
     {
       var segment = _db.GetRdfSeg(addr.RoadLinkId);
+      segment.Addr = addr;
 
-      // if (addr.SwappedHno)
-      //  segment.Coordinates.Reverse();
+      if (addr.SwappedHno)
+         segment.Coordinates.Reverse();
 
       return segment;
     }
 
-    
+
     private List<int> GetRoadLinkId(int streetSegId)
     {
       var roadLinkIds = _db.GetMatchedRoadLinkIdsForStreetSeg(streetSegId);
@@ -312,6 +306,6 @@ namespace RDFMatcher_NetCore
       return false;
     }
 
-   
+
   }
 }

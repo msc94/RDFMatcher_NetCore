@@ -24,7 +24,7 @@ namespace RDFMatcher_NetCore
 
       var szIDReader = MySqlHelper.ExecuteReader(DB.ConnectionString, "SELECT ID, HN_START, HN_END, SCHEME " +
                                                                       "FROM street_seg seg " +
-                                                                      "WHERE seg.ID = 958"); // +
+                                                                      "WHERE TRUE;"); // +
                                                                       //" seg.STREET_ZIP_ID in " +
                                                                       //" (SELECT DISTINCT m.SZ_ID FROM match_sz m) AND" +
                                                                       //" seg.ID not in" +

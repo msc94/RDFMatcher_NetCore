@@ -22,10 +22,10 @@ namespace RDFMatcher_NetCore
   {
     public List<SegmentCoordinate> Coordinates = new List<SegmentCoordinate>();
 
-    public List<Segment> Children = new List<Segment>();
-    public List<Segment> Parents = new List<Segment>();
+    public List<Segment> BeginChildren = new List<Segment>();
+    public List<Segment> EndChildren = new List<Segment>();
 
-    public bool InGraph = false;
+    public List<Segment> Children = new List<Segment>();
 
     public float Length()
     {
@@ -40,18 +40,25 @@ namespace RDFMatcher_NetCore
       return totalDistance;
     }
 
+    private int ChildrenSorter(Segment a, Segment b)
+    {
+      return a.SegmentLength() < b.SegmentLength() ? -1 : 1;
+    }
+
     public List<SegmentCoordinate> GetCoordinates()
     {
       var list = new List<SegmentCoordinate>();
 
+      BeginChildren.Sort(ChildrenSorter);
+      foreach (var child in BeginChildren)
+      {
+        list.AddRange(child.GetCoordinates());
+      }
+
       list.AddRange(Coordinates);
 
-      Children.Sort((a, b) =>
-      {
-        return a.SegmentLength() < b.SegmentLength() ? -1 : 1;
-      });
-
-      foreach (var child in Children)
+      EndChildren.Sort(ChildrenSorter);
+      foreach (var child in EndChildren)
       {
         list.AddRange(child.GetCoordinates());
       }
@@ -61,8 +68,6 @@ namespace RDFMatcher_NetCore
 
     public void AddChildren(List<Segment> segmentList)
     {
-      InGraph = true;
-
       if (segmentList.Count == 0)
         return;
 
@@ -75,20 +80,17 @@ namespace RDFMatcher_NetCore
         }
       }
 
+      Children = new List<Segment>(BeginChildren.Union(EndChildren));
+
       foreach (var child in Children)
       {
         child.AddChildren(segmentList);
       }
-
-      // And add ourselves to the children list of all our parents
-      foreach (var parent in Parents)
-      {
-        parent.AddChildren(segmentList);
-        parent.Children.Add(this);
-      }
     }
 
     private float _segmentLength = float.MinValue;
+    internal RdfAddr Addr;
+
     public float SegmentLength()
     {
       if (_segmentLength > 0)
@@ -115,23 +117,25 @@ namespace RDFMatcher_NetCore
       if (firstCoordinateSelf.Equals(firstCoordinateOther))
       {
         // TODO: Reverse segments here?
-        Parents.Add(segment);
+        segment.Coordinates.Reverse();
+        BeginChildren.Add(segment);
         return true;
       }
       else if (firstCoordinateSelf.Equals(lastCoordinateOther))
       {
-        Parents.Add(segment);
+        segment.Coordinates.Reverse();
+        BeginChildren.Add(segment);
         return true;
       }
       else if (lastCoordinateSelf.Equals(firstCoordinateOther))
       {
-        Children.Add(segment);
+        EndChildren.Add(segment);
         return true;
       }
       else if (lastCoordinateSelf.Equals(lastCoordinateOther))
       {
         segment.Coordinates.Reverse();
-        Children.Add(segment);
+        EndChildren.Add(segment);
         return true;
       }
 
@@ -139,22 +143,23 @@ namespace RDFMatcher_NetCore
     }
 
     private const float defaultMinDistance = 0.011f;
-    public void AddCoordinatesInBetween(float minDistance = defaultMinDistance)
+    public static List<SegmentCoordinate> 
+      AddCoordinatesInBetween(List<SegmentCoordinate> coordinates, float minDistance = defaultMinDistance)
     {
       var result = new List<SegmentCoordinate>();
 
-      for (int i = 0; i < Coordinates.Count; i++)
+      for (int i = 0; i < coordinates.Count; i++)
       {
-        var currentSegment = Coordinates[i];
+        var currentSegment = coordinates[i];
 
         // Always add the current segment
         // This will also include the last one
         result.Add(currentSegment);
 
         // Check if we have a following segment
-        if (i + 1 < Coordinates.Count)
+        if (i + 1 < coordinates.Count)
         {
-          var nextSegment = Coordinates[i + 1];
+          var nextSegment = coordinates[i + 1];
           float distance = Utils.DistanceBetweenInKilometers(currentSegment, nextSegment);
           if (distance > minDistance)
           {
@@ -164,10 +169,10 @@ namespace RDFMatcher_NetCore
         }
       }
 
-      Coordinates = result;
+      return result;
     }
 
-    private List<SegmentCoordinate> CreateCoordinatesBetween(SegmentCoordinate s1, SegmentCoordinate s2, float distance, int numCoordinatesToAdd)
+    public static List<SegmentCoordinate> CreateCoordinatesBetween(SegmentCoordinate s1, SegmentCoordinate s2, float distance, int numCoordinatesToAdd)
     {
       float forwardLat = (s2.Lat - s1.Lat) / (numCoordinatesToAdd + 1);
       float forwardLon = (s2.Lng - s1.Lng) / (numCoordinatesToAdd + 1);

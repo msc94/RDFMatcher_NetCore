@@ -270,8 +270,6 @@ namespace RDFMatcher_NetCore.DBHelper
           new MySqlParameter("@1", segmentId),
           new MySqlParameter("@2", lat),
           new MySqlParameter("@3", lon),
-          new MySqlParameter("@4", lat),
-          new MySqlParameter("@5", lon)
         });
     }
 
