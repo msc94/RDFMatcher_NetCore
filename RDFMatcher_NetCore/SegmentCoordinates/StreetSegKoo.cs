@@ -23,7 +23,7 @@ namespace RDFMatcher_NetCore
         "TRUNCATE TABLE street_seg_koo; " +
         "TRUNCATE TABLE street_seg_koo_group;");
 
-      var szIDReader = MySqlHelper.ExecuteReader(DB.ConnectionString, "SELECT ID, HN_START, HN_END, SCHEME " +
+      var szIDReader = MySqlHelper.ExecuteReader(DB.ConnectionString, "SELECT ID as SEG_ID, STREET_ZIP_ID as SZ_ID, HN_START, HN_END, SCHEME " +
                                                                       "FROM street_seg seg " +
                                                                       "WHERE TRUE;"); // +
                                                                       //" seg.STREET_ZIP_ID in " +
@@ -34,7 +34,8 @@ namespace RDFMatcher_NetCore
       {
         var item = new StreetSegKooItem
         {
-          SegmentId = szIDReader.GetValue(szIDReader.GetOrdinal("ID")),
+          SegmentId = szIDReader.GetInt64("SEG_ID"),
+          StreetZipId = szIDReader.GetInt64("SZ_ID"),
           HouseNumberStart = szIDReader.GetInt32("HN_START"),
           HouseNumberEnd = szIDReader.GetInt32("HN_END"),
           Scheme = szIDReader.GetInt32("SCHEME")

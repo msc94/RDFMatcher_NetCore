@@ -29,7 +29,7 @@ namespace RDFMatcher_NetCore
 
     public override WorkResult Work(StreetSegKooItem segmentItem)
     {
-      var streetSegID = (int)segmentItem.SegmentId;
+      var streetSegID = segmentItem.SegmentId;
 
       // Get matched ROAD_LINK_ID
       var roadLinkIds = GetRoadLinkId(streetSegID);
@@ -67,6 +67,7 @@ namespace RDFMatcher_NetCore
       foreach (var segment in segments)
       {
         segment.Coordinates = Segment.AddCoordinatesInBetween(segment.Coordinates);
+        // coordinates.AddRange(segment.Coordinates);
       }
 
       List<Segment> segmentList = new List<Segment>(segments);
@@ -83,6 +84,7 @@ namespace RDFMatcher_NetCore
       }
 
       coordinates = RemoveDuplicates(coordinates);
+      coordinates = ShrinkToHouseNumberRange(coordinates, segmentItem);
 
       if (coordinates.Count > 1000)
       {
@@ -117,6 +119,96 @@ namespace RDFMatcher_NetCore
       return WorkResult.Successful;
     }
 
+    private SegmentCoordinate GetCoordinateForHouseNumber(long streetZipId, int houseNumber)
+    {
+      var reader = MySqlHelper.ExecuteReader(DB.ConnectionString,
+        "SELECT AP_LAT, AP_LNG " +
+        "FROM building b " +
+        "WHERE b.STREET_ZIP_ID = @1 AND b.HNO = @2 AND " +
+        "AP_LAT IS NOT NULL AND AP_LNG IS NOT NULL;",
+        new MySqlParameter[]
+        {
+          new MySqlParameter("@1", streetZipId),
+          new MySqlParameter("@2", houseNumber)
+        });
+
+      using (reader)
+      {
+        if (!reader.Read())
+          return null;
+
+        return new SegmentCoordinate
+        {
+          Lat = Utils.ParseDoubleInvariantCulture(reader.GetString("AP_LAT")),
+          Lng = Utils.ParseDoubleInvariantCulture(reader.GetString("AP_LNG"))
+        };
+      }
+    }
+
+    private List<SegmentCoordinate> ShrinkToHouseNumberRange(List<SegmentCoordinate> coordinates, StreetSegKooItem segmentItem)
+    {
+      // Get the matched coordinate for the min/max housenumber
+      var minHnoCoordinate = GetCoordinateForHouseNumber(segmentItem.StreetZipId, segmentItem.HouseNumberStart);
+      var maxHnoCoordinate = GetCoordinateForHouseNumber(segmentItem.StreetZipId, segmentItem.HouseNumberEnd);
+
+      var result = new List<SegmentCoordinate>();
+
+      long minIndex = 0;
+      double minDistanceMin = double.MaxValue;
+
+      long maxIndex = coordinates.Count;
+      double minDistanceMax = double.MaxValue;
+
+      for (int i = 0; i < coordinates.Count; i++)
+      {
+        var currentCoordinate = coordinates[i];
+
+        if (minHnoCoordinate != null)
+        {
+          var currentDistanceMin = Utils.DistanceBetweenInKilometers(minHnoCoordinate, currentCoordinate);
+          if (currentDistanceMin < minDistanceMin)
+          {
+            minDistanceMin = currentDistanceMin;
+            minIndex = i;
+          }
+        }
+
+        if (maxHnoCoordinate != null)
+        {
+          var currentDistanceMax = Utils.DistanceBetweenInKilometers(maxHnoCoordinate, currentCoordinate);
+          if (currentDistanceMax < minDistanceMax)
+          {
+            minDistanceMax = currentDistanceMax;
+            maxIndex = i;
+          }
+        }
+      }
+
+      if (minIndex == maxIndex)
+      {
+        if (minIndex > 0)
+          --minIndex;
+        if (maxIndex < coordinates.Count)
+          ++maxIndex;
+      }
+
+      bool reverseRange = false;
+      if (minIndex > maxIndex)
+      {
+        Utils.Swap(ref minIndex, ref maxIndex);
+        reverseRange = true;
+      }
+
+      var startIndex = (int)minIndex;
+      var length = (int)(maxIndex - minIndex);
+      var newCoordinates = coordinates.GetRange(startIndex, length);
+
+      if (reverseRange)
+        newCoordinates.Reverse();
+
+      return newCoordinates;
+    }
+
     private List<RdfAddr> SortNldRdfAddrData(List<RdfAddr> nldRdfAddrData)
     {
       nldRdfAddrData.Sort(RdfAddr.Compare);
@@ -141,13 +233,13 @@ namespace RDFMatcher_NetCore
       var segment = _db.GetRdfSeg(addr.RoadLinkId);
 
       if (addr.SwappedHno)
-         segment.Coordinates.Reverse();
+        segment.Coordinates.Reverse();
 
       return segment;
     }
 
 
-    private List<int> GetRoadLinkId(int streetSegId)
+    private List<int> GetRoadLinkId(long streetSegId)
     {
       var roadLinkIds = _db.GetMatchedRoadLinkIdsForStreetSeg(streetSegId);
       return roadLinkIds;

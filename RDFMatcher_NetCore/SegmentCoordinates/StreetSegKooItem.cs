@@ -2,7 +2,9 @@
 {
   class StreetSegKooItem
   {
-    public object SegmentId;
+    public long SegmentId;
+    public long StreetZipId;
+
     public int HouseNumberStart;
     public int HouseNumberEnd;
     public int Scheme;
