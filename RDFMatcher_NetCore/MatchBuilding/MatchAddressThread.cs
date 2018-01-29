@@ -18,7 +18,7 @@ namespace RDFMatcher_NetCore
 
     public override WorkResult Work(MatchAddressItem item)
     {
-      var address = (item.HouseNumber + item.HouseNumberExtension).Trim('0');
+      var address = (item.HouseNumber + item.HouseNumberExtension).TrimStart('0');
       var streetType = NZ.ReplaceStreetType(item.StreetType);
 
       var matchedPoints = _db.GetRdfPointsForAddress(item.Zip, item.StreetName, streetType, address);

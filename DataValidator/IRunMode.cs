@@ -6,7 +6,7 @@ namespace DataValidator
   interface IRunMode
   {
     void FillMap(Map map, Label streetLabel);
-    void LoadEntries();
+    void LoadEntries(Label statusLabel);
     void NextEntry();
   }
 }

@@ -31,7 +31,7 @@ namespace DataValidator
     private Random _rand = new Random();
     private BuildingEntry _currentEntry;
 
-    public void LoadEntries()
+    public void LoadEntries(Label statusLabel)
     {
       const string getEntry =
         "SELECT b.ID, b.HNO, b.HNO_EXTENSION, b.AP_LAT, b.AP_LNG, sz.ZIP, s.NAME, z1.ZONE_NAME as z1_NAME, z2.ZONE_NAME as z2_NAME " +

@@ -9,7 +9,7 @@ namespace RDFMatcher_NetCore.Utilities
   {
     public static int? ParseIntHandleEmpty(string s)
     {
-      if (s == "")
+      if (s.Length == 0)
         return null;
       if (!int.TryParse(s, out var i))
         return null;

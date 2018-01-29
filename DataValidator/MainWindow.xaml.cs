@@ -60,7 +60,7 @@ namespace DataValidator
 
     private void LoadBtn_OnClick(object sender, RoutedEventArgs e)
     {
-      _runMode.LoadEntries();
+      _runMode.LoadEntries(StatusLabel);
     }
 
 
