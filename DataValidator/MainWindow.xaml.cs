@@ -50,21 +50,30 @@ namespace DataValidator
           "server=h2744269.stratoserver.net;" +
           "uid=Marcel;" +
           "pwd=YyQzKeSSX0TlgsI4;" +
-          "database=POL;" +
+          "database=NZE;" +
           "connection timeout=1000;" +
           "command timeout=1000;";
       }
-
     }
-
 
     private void LoadBtn_OnClick(object sender, RoutedEventArgs e)
     {
       _runMode.LoadEntries(StatusLabel);
     }
 
+    private void InfoBtn_OnClick(object sender, RoutedEventArgs e)
+    {
+      Task.Run(() => 
+      {
+        var total = (long) MySqlHelper.ExecuteScalar(connectionString, "SELECT COUNT(*) FROM building;");
+        var matched = (long) MySqlHelper.ExecuteScalar(connectionString, "SELECT COUNT(*) FROM building WHERE AP_LAT IS NOT NULL;");
 
-    private void NextBtn_OnClick_OnClick(object sender, RoutedEventArgs e)
+        var matchedPercentage = matched / (double)total * 100.0;
+        MessageBox.Show($"Matched Percentage: {matchedPercentage.ToString("00.00")}", "Information");
+      });
+    }
+
+    private void NextBtn_OnClick(object sender, RoutedEventArgs e)
     {
       _runMode.NextEntry();
       _runMode.FillMap(Map, StreetLabel);

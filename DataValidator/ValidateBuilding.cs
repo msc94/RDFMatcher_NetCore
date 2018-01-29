@@ -31,7 +31,7 @@ namespace DataValidator
     private Random _rand = new Random();
     private BuildingEntry _currentEntry;
 
-    public void LoadEntries(Label statusLabel)
+    public async void LoadEntries(Label statusLabel)
     {
       const string getEntry =
         "SELECT b.ID, b.HNO, b.HNO_EXTENSION, b.AP_LAT, b.AP_LNG, sz.ZIP, s.NAME, z1.ZONE_NAME as z1_NAME, z2.ZONE_NAME as z2_NAME " +
@@ -42,7 +42,7 @@ namespace DataValidator
         " LEFT JOIN zone z2 on z1.LEVEL_1_ZONE_ID = z2.ID " +
         "WHERE b.AP_LAT IS NOT NULL AND b.AP_LNG IS NOT NULL;";
 
-      Task.Run(() =>
+      await Task.Run(() =>
       {
         var reader = MySqlHelper.ExecuteReader(MainWindow.connectionString, getEntry);
         while (reader.Read())
@@ -73,6 +73,7 @@ namespace DataValidator
         }
       });
 
+      statusLabel.Content = $"Loaded {_entries.Count} entries";
     }
 
     public void NextEntry()
@@ -84,6 +85,7 @@ namespace DataValidator
     {
       streetLabel.Content = _currentEntry.Id + ": " + _currentEntry.StreetName + " " + _currentEntry.Hno + _currentEntry.HnoExtension + "; " + _currentEntry.ProvinceName + "; " + _currentEntry.Zip + " " + _currentEntry.PlaceName;
 
+      map.Children.Clear();
       var location = new Location(_currentEntry.ApLat, _currentEntry.ApLng);
       var pp = new Pushpin { Location = location };
       map.Children.Add(pp);

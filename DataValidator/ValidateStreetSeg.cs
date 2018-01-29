@@ -100,7 +100,7 @@ namespace DataValidator
         "  LEFT JOIN street_zip sz ON sz.ID = ss.STREET_ZIP_ID " +
         "  LEFT JOIN street s on s.ID = sz.STREET_ID " +
         "  LEFT JOIN street_seg_koo_group sskg ON ss.ID = sskg.STREET_SEG_ID " +
-        "WHERE COORDINATES IS NOT NULL AND sz.ID = 28770;";
+        "WHERE COORDINATES IS NOT NULL;";
 
       await Task.Run(() =>
       {

@@ -6,7 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DataValidator"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+        Title="MainWindow" Height="500" Width="1000">
     <Grid>
         
         <Grid.RowDefinitions>
@@ -23,13 +23,17 @@
                 <ComboBoxItem>StreetSeg</ComboBoxItem>
             </ComboBox>
             <Button x:Name="LoadBtn" Content="Laden" Click="LoadBtn_OnClick"/>
-            <Button x:Name="NextBtn" Content="Nächste" Click="NextBtn_OnClick_OnClick"/>
-            <Button x:Name="ReloadBtn" Content="Neu Laden" Click="ReloadBtn_OnClick" />
+            <Button x:Name="NextBtn" Content="Nächste" Click="NextBtn_OnClick"/>
+            <Button x:Name="ReloadBtn" Content="Neu Laden" Click="ReloadBtn_OnClick"/>
             <Label x:Name="StreetLabel" Content="Hallo"/>
         </StackPanel>
         
         <m:Map x:Name="Map" Grid.Row="1" CredentialsProvider="AnJCH1xbn-N0Gbz1yw47VTAcpFEIN7VTdWqOlqwB-vY6-2-_PRjZ5GGCFkmQPJB7" />
-        <Label Grid.Row="2" x:Name="StatusLabel" Content="Ende"/>
-        
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal">
+            <Button x:Name="InfoBtn" Content="Info" Click="InfoBtn_OnClick"/>
+            <Label x:Name="StatusLabel" Content="Ende"/>
+        </StackPanel>
+
     </Grid>
 </Window>
