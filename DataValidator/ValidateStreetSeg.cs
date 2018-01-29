@@ -75,8 +75,8 @@ namespace DataValidator
 
         Debug.Assert(latLng.Length == 2);
 
-        var lat = float.Parse(latLng[0].Replace('.', ','));
-        var lng = float.Parse(latLng[1].Replace('.', ','));
+        var lat = double.Parse(latLng[0].Replace('.', ','));
+        var lng = double.Parse(latLng[1].Replace('.', ','));
 
         newLocations.Add(new Location(lat, lng));
       }

@@ -27,7 +27,7 @@ namespace DataValidator
 
     public static string connectionString;
 
-    private IRunMode _runMode = new ValidateStreetSeg();
+    private IRunMode _runMode = new ValidateBuilding();
 
     public MainWindow()
     {
@@ -40,7 +40,7 @@ namespace DataValidator
           "server=localhost;" +
           "uid=root;" +
           "pwd=bloodrayne;" +
-          "database=nor;" +
+          "database=nz;" +
           "connection timeout=1000;" +
           "command timeout=1000;";
       }
@@ -75,5 +75,21 @@ namespace DataValidator
       _runMode.FillMap(Map, StreetLabel);
     }
 
+    private void RunmodeCb_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+      var selectedValue = RunmodeCb.SelectedValue;
+      if (selectedValue == null)
+        return;
+
+      var selectedValueString = selectedValue.ToString();
+      if (selectedValueString == "Building")
+      {
+        _runMode = new ValidateBuilding();
+      }
+      else if (selectedValueString == "StreetSeg")
+      {
+        _runMode = new ValidateStreetSeg();
+      }
+    }
   }
 }

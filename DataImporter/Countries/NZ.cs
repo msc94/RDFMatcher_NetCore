@@ -77,12 +77,14 @@ namespace DataImporter.Countries
 
           string[] values = line.Split('|');
           string key = values[1];
+          string name = values[2];
+          string type = values[3];
+
+          if (name == "")
+            continue;
 
           if (!result.ContainsKey(key))
             result[key] = new List<StreetAlias>();
-
-          string name = values[2];
-          string type = values[3];
 
           result[key].Add(new StreetAlias
           {
@@ -114,6 +116,9 @@ namespace DataImporter.Countries
           string key = values[1];
           string value = values[2];
 
+          if (value == "")
+            continue;
+
           if (!result.ContainsKey(key))
             result[key] = new List<string>();
 
@@ -130,7 +135,6 @@ namespace DataImporter.Countries
       MySqlHelper.ExecuteNonQuery(connectionString, "TRUNCATE TABLE street_zip;");
       MySqlHelper.ExecuteNonQuery(connectionString, "TRUNCATE TABLE street;");
       MySqlHelper.ExecuteNonQuery(connectionString, "TRUNCATE TABLE zone;");
-
 
       var streetAliasesDic = ReadStreetAliases(@"G:\SQL\NZ\PAF2_V2017Q3V01\PAF2_V2017Q3V01_ALTERNATIVE_STREET_NAMES.csv");
       var suburbAliasesDic = ReadAliases(@"G:\SQL\NZ\PAF2_V2017Q3V01\PAF2_V2017Q3V01_ALTERNATIVE_SUBURB_NAMES.csv");
@@ -157,6 +161,12 @@ namespace DataImporter.Countries
             continue;
 
           string[] values = line.Split('|');
+
+          var addressType = values[fieldIndexes["ADDRESS_TYPE"]];
+
+          if (addressType != "RURAL" &&
+            addressType != "URBAN")
+            continue;
 
           var streetAliases = GetEntry(streetAliasesDic, values[fieldIndexes["STREET_ALIAS_ID"]]);
           var suburbAliases = GetEntry(suburbAliasesDic, values[fieldIndexes["SUBURB_ALIAS_ID"]]);
@@ -194,7 +204,7 @@ namespace DataImporter.Countries
               Level = 2,
               ParentZone = townCityZone,
               Name = suburbName,
-              Aliases = townAliases
+              Aliases = suburbAliases
             };
           }
           else

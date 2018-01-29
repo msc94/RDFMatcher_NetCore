@@ -5,9 +5,9 @@ namespace RDFMatcher_NetCore
 {
   public static class ExtensionMethods
   {
-    public static float ToRadians(this float val)
+    public static double ToRadians(this double val)
     {
-      return ((float)Math.PI / 180.0f) * val;
+      return (Math.PI / 180.0) * val;
     }
 
     public static void AddIfNotNull(this List<int> list, int? i)

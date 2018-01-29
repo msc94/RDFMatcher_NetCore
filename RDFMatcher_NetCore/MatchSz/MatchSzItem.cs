@@ -4,6 +4,7 @@
   {
     public int StreetZipId;
     public string StreetName;
+    public string StreetType;
     public string Zip;
   }
 }

@@ -23,31 +23,31 @@ namespace RDFMatcher_NetCore.Utilities
       rhs = temp;
     }
 
-    public static float ParseFloatInvariantCulture(string s)
+    public static double ParseDoubleInvariantCulture(string s)
     {
-      return float.Parse(s, CultureInfo.InvariantCulture);
+      return double.Parse(s, CultureInfo.InvariantCulture);
     }
 
-    public static string FloatToStringInvariantCulture(float f, string format)
+    public static string DoubleToStringInvariantCulture(double d, string format)
     {
-      return f.ToString(format, CultureInfo.InvariantCulture);
+      return d.ToString(format, CultureInfo.InvariantCulture);
     }
 
     // https://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula
-    public static float DistanceBetweenInKilometers(SegmentCoordinate s1, SegmentCoordinate s2)
+    public static double DistanceBetweenInKilometers(SegmentCoordinate s1, SegmentCoordinate s2)
     {
-      float earthRadius = 6371.0f;
+      double earthRadius = 6371.0;
 
-      float dLat = (s2.Lat - s1.Lat).ToRadians();
-      float dLon = (s2.Lng - s1.Lng).ToRadians();
+      double dLat = (s2.Lat - s1.Lat).ToRadians();
+      double dLon = (s2.Lng - s1.Lng).ToRadians();
 
-      float a = (float)
+      double a =
           (Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
           Math.Cos(s1.Lat) * Math.Cos(s2.Lat) *
           Math.Sin(dLon / 2) * Math.Sin(dLon / 2));
 
-      float c = 2.0f * (float)Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-      float distance = earthRadius * c; // Distance in km
+      double c = 2.0f * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+      double distance = earthRadius * c; // Distance in km
 
       return distance;
     }

@@ -192,6 +192,18 @@ namespace DataImporter
         });
       }
 
+      // Insert aliases
+      commandText = "INSERT INTO zone (ZONE_NAME, IS_ALIAS, ZONE_MASTER_ID) VALUES (@1, 1, @2)";
+      foreach (var alias in zone.Aliases)
+      {
+        MySqlHelper.ExecuteNonQuery(_connectionString, commandText,
+        new MySqlParameter[]
+        {
+          new MySqlParameter("@1", alias),
+          new MySqlParameter("@2", zoneID)
+        });
+      }
+
       return Convert.ToUInt64(zoneID);
 
     }

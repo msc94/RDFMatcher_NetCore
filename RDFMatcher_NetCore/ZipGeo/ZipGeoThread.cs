@@ -12,7 +12,7 @@ namespace RDFMatcher_NetCore
 {
   class ZipGeoThread : WorkerThread<ZipGeoItem>
   {
-    public ZipGeoThread(WorkerThreadsProgress workerThreadProgress, BlockingCollection<ZipGeoItem> workQueue) 
+    public ZipGeoThread(WorkerThreadsProgress workerThreadProgress, BlockingCollection<ZipGeoItem> workQueue)
       : base(workerThreadProgress, workQueue)
     {
     }
@@ -20,12 +20,12 @@ namespace RDFMatcher_NetCore
     public override WorkResult Work(ZipGeoItem item)
     {
       string zip = item.Zip;
-      var coordinates = new List<Coordinates<float>>();
+      var coordinates = new List<Coordinates<double>>();
 
       var coordinateReader = MySqlHelper.ExecuteReader(DB.ConnectionString,
         "SELECT addr.LEFT_POSTAL_CODE, pt.LAT, pt.LNG " +
-        "FROM nor_rdf_addr addr " +
-        " LEFT JOIN nor_rdf_point pt USING (ROAD_LINK_ID) " +
+        "FROM nz_rdf_addr addr " +
+        " LEFT JOIN nz_rdf_point pt USING (ROAD_LINK_ID) " +
         $"WHERE addr.LEFT_POSTAL_CODE = @1 " +
         " AND pt.LAT IS NOT NULL AND pt.LNG IS NOT NULL",
         new MySqlParameter[]
@@ -35,40 +35,37 @@ namespace RDFMatcher_NetCore
 
       while (coordinateReader.Read())
       {
-        string latString = coordinateReader.GetString("LAT").Insert(2, ".");
-        string lonString = coordinateReader.GetString("LNG");
+        string latString = coordinateReader.GetString("LAT").Insert(3, ".");
+        string lonString = coordinateReader.GetString("LNG").Insert(3, ".");
 
-        if (lonString.Length == 6)
-          lonString = lonString.Insert(1, ".");
-        else
-          lonString = lonString.Insert(2, ".");
-
-        coordinates.Add(new Coordinates<float>
+        coordinates.Add(new Coordinates<double>
         {
-          Lat = Utils.ParseFloatInvariantCulture(latString),
-          Lng = Utils.ParseFloatInvariantCulture(lonString)
+          Lat = Utils.ParseDoubleInvariantCulture(latString),
+          Lng = Utils.ParseDoubleInvariantCulture(lonString)
         });
       }
 
       coordinateReader.Close();
 
       bool matched = false;
-      float midLat = -1.0f, midLng = -1.0f;
+      double midLat = -1.0f, midLng = -1.0f;
 
       if (coordinates.Count > 0)
       {
         midLat = coordinates.Sum(c => c.Lat) / coordinates.Count;
         midLng = coordinates.Sum(c => c.Lng) / coordinates.Count;
+        Log.WriteLine($"Matched {zip} from RDF data");
         matched = true;
       }
       else
       {
-        Coordinates<float> googleCoordinate = MatchGoogle(zip);
+        Coordinates<double> googleCoordinate = MatchGoogle(zip);
 
         if (googleCoordinate != null)
         {
           midLat = googleCoordinate.Lat;
           midLng = googleCoordinate.Lng;
+          Log.WriteLine($"Matched {zip} from Google data");
           matched = true;
         }
       }
@@ -87,26 +84,26 @@ namespace RDFMatcher_NetCore
         new MySqlParameter[]
         {
           new MySqlParameter("@1", zip),
-          new MySqlParameter("@2", Utils.FloatToStringInvariantCulture(midLat, latFormat)),
-          new MySqlParameter("@3", Utils.FloatToStringInvariantCulture(midLng, lngFormat)),
+          new MySqlParameter("@2", Utils.DoubleToStringInvariantCulture(midLat, latFormat)),
+          new MySqlParameter("@3", Utils.DoubleToStringInvariantCulture(midLng, lngFormat)),
         });
 
       return WorkResult.Successful;
     }
 
-    private Coordinates<float> MatchGoogle(string zip)
+    private Coordinates<double> MatchGoogle(string zip)
     {
       var request = new GeocodingRequest();
-      request.Address = $"{zip}, Norwegen";
+      request.Address = $"{zip}, Neuseeland";
       var response = new GeocodingService().GetResponse(request);
 
       if (response.Status == ServiceResponseStatus.Ok && response.Results.Count() == 1)
       {
         var firstResult = response.Results.First();
-        var result = new Coordinates<float>
+        var result = new Coordinates<double>
         {
-          Lat = (float)firstResult.Geometry.Location.Latitude,
-          Lng = (float)firstResult.Geometry.Location.Longitude
+          Lat = firstResult.Geometry.Location.Latitude,
+          Lng = firstResult.Geometry.Location.Longitude
         };
         return result;
       }

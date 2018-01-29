@@ -20,7 +20,8 @@ namespace RDFMatcher_NetCore
       }
 
       MySqlHelper.ExecuteNonQuery(DB.ConnectionString,
-        "TRUNCATE TABLE street_seg_koo; TRUNCATE TABLE street_seg_koo_group;");
+        "TRUNCATE TABLE street_seg_koo; " +
+        "TRUNCATE TABLE street_seg_koo_group;");
 
       var szIDReader = MySqlHelper.ExecuteReader(DB.ConnectionString, "SELECT ID, HN_START, HN_END, SCHEME " +
                                                                       "FROM street_seg seg " +

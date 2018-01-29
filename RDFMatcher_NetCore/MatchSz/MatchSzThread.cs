@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
+using RDFMatcher_NetCore.Countries;
 
 namespace RDFMatcher_NetCore
 {
@@ -17,10 +18,15 @@ namespace RDFMatcher_NetCore
 
     public override WorkResult Work(MatchSzItem item)
     {
-      var addrItems = _db.GetMatchingRdfAddrItems(item.Zip, item.StreetName);
+      item.StreetType = NZ.ReplaceStreetType(item.StreetType);
+
+      var addrItems = _db.GetMatchingRdfAddrItems(item.Zip, item.StreetName, item.StreetType);
 
       if (addrItems.Count == 0)
+      {
+        Log.WriteLine($"No match for {item.Zip}, {item.StreetName}, {item.StreetType}");
         return WorkResult.Failed;
+      }
 
       foreach (var addrItem in addrItems)
       {

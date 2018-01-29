@@ -16,6 +16,12 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Orientation="Horizontal">
+            <ComboBox x:Name="RunmodeCb" 
+                      SelectionChanged="RunmodeCb_SelectionChanged"
+                      SelectedValuePath="Content">
+                <ComboBoxItem IsSelected="True">Building</ComboBoxItem>
+                <ComboBoxItem>StreetSeg</ComboBoxItem>
+            </ComboBox>
             <Button x:Name="LoadBtn" Content="Laden" Click="LoadBtn_OnClick"/>
             <Button x:Name="NextBtn" Content="Nächste" Click="NextBtn_OnClick_OnClick"/>
             <Button x:Name="ReloadBtn" Content="Neu Laden" Click="ReloadBtn_OnClick" />
@@ -23,7 +29,7 @@
         </StackPanel>
         
         <m:Map x:Name="Map" Grid.Row="1" CredentialsProvider="AnJCH1xbn-N0Gbz1yw47VTAcpFEIN7VTdWqOlqwB-vY6-2-_PRjZ5GGCFkmQPJB7" />
-        <Label Grid.Row="2" Content="Ende"/>
+        <Label Grid.Row="2" x:Name="StatusLabel" Content="Ende"/>
         
     </Grid>
 </Window>

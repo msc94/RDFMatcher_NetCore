@@ -13,7 +13,7 @@ namespace RDFMatcher_NetCore
   {
     public static void DoMatch()
     {
-      string commandText = "SELECT sz.ID as SZ_ID, sz.ZIP, s.NAME " +
+      string commandText = "SELECT sz.ID as SZ_ID, sz.ZIP, s.NAME, s.TYPE " +
                            "FROM street_zip sz " +
                            "  LEFT JOIN street s ON s.id = sz.STREET_ID " +
                            "WHERE sz.ID NOT IN (SELECT SZ_ID FROM match_sz)";
@@ -37,7 +37,8 @@ namespace RDFMatcher_NetCore
           {
             StreetZipId = reader.GetInt32("SZ_ID"),
             Zip = reader.GetString("ZIP"),
-            StreetName = reader.GetString("NAME")
+            StreetName = reader.GetString("NAME"),
+            StreetType = reader.GetString("TYPE")
           };
 
           matchingThreadWorkQueue.Add(item);
