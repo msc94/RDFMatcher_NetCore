@@ -21,6 +21,7 @@
                       SelectedValuePath="Content">
                 <ComboBoxItem IsSelected="True">Building</ComboBoxItem>
                 <ComboBoxItem>StreetSeg</ComboBoxItem>
+                <ComboBoxItem>StreetSegBuilding</ComboBoxItem>
             </ComboBox>
             <Button x:Name="LoadBtn" Content="Laden" Click="LoadBtn_OnClick"/>
             <Button x:Name="NextBtn" Content="Nächste" Click="NextBtn_OnClick"/>

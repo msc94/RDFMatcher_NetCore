@@ -43,6 +43,13 @@ namespace DataValidator
     private Random _rand = new Random();
     private Entry _currentEntry;
 
+    private readonly bool _showMatchedHouses;
+
+    public ValidateStreetSeg(bool showMatchedHouses)
+    {
+      _showMatchedHouses = showMatchedHouses;
+    }
+
     private void ReadBuildings(Entry item)
     {
       const string getBuildings =
@@ -156,14 +163,16 @@ namespace DataValidator
       }
 
       // Fill buildings
-      foreach (var building in _currentEntry.Buildings)
+      if (_showMatchedHouses)
       {
-        var location = new Location(building.Coordinate.Lat, building.Coordinate.Lng);
-        var pp = new Pushpin { Location = location, Content = building.HouseNumber };
-        pp.Background = new SolidColorBrush(Color.FromArgb(255, 0, 255, 0));
-        map.Children.Add(pp);
+        foreach (var building in _currentEntry.Buildings)
+        {
+          var location = new Location(building.Coordinate.Lat, building.Coordinate.Lng);
+          var pp = new Pushpin { Location = location, Content = building.HouseNumber };
+          pp.Background = new SolidColorBrush(Color.FromArgb(255, 0, 255, 0));
+          map.Children.Add(pp);
+        }
       }
-
 
       var locationRect = new LocationRect(streetSegmentLocations);
       map.SetView(locationRect);

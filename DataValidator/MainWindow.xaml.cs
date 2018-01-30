@@ -97,7 +97,11 @@ namespace DataValidator
       }
       else if (selectedValueString == "StreetSeg")
       {
-        _runMode = new ValidateStreetSeg();
+        _runMode = new ValidateStreetSeg(false);
+      }
+      else if (selectedValueString == "StreetSegBuilding")
+      {
+        _runMode = new ValidateStreetSeg(true);
       }
     }
   }
