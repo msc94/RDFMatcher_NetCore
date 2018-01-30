@@ -66,6 +66,23 @@ namespace RDFMatcher_NetCore
       return list;
     }
 
+    public void RearrangeChildren()
+    {
+      double beginChildrenLength = 0.0;
+      if (BeginChildren.Count > 0)
+        beginChildrenLength = BeginChildren.Max((c) => c.SegmentLength());
+
+      double endChildrenLength = 0.0f;
+      if (EndChildren.Count > 0)
+        endChildrenLength = EndChildren.Max((c) => c.SegmentLength());
+
+      if (beginChildrenLength > endChildrenLength)
+      {
+        Utils.Swap(ref BeginChildren, ref EndChildren);
+        Coordinates.Reverse();
+      }
+    }
+
     public void AddChildren(List<Segment> segmentList)
     {
       if (segmentList.Count == 0)
@@ -81,27 +98,22 @@ namespace RDFMatcher_NetCore
       }
 
       Children = new List<Segment>(BeginChildren.Union(EndChildren));
-
       foreach (var child in Children)
       {
         child.AddChildren(segmentList);
       }
+
+      RearrangeChildren();
     }
 
-    private double _segmentLength = double.MinValue;
     public double SegmentLength()
     {
-      if (_segmentLength > 0)
-      {
-        return _segmentLength;
-      }
-
-      _segmentLength = Length();
+      double segmentLength = Length();
       foreach (var child in Children)
       {
-        _segmentLength += child.SegmentLength();
+        segmentLength += child.SegmentLength();
       }
-      return _segmentLength;
+      return segmentLength;
     }
 
     public bool AddToLists(Segment segment)
@@ -114,8 +126,6 @@ namespace RDFMatcher_NetCore
 
       if (firstCoordinateSelf.Equals(firstCoordinateOther))
       {
-        // TODO: Reverse segments here?
-        segment.Coordinates.Reverse();
         BeginChildren.Add(segment);
         return true;
       }
@@ -178,7 +188,7 @@ namespace RDFMatcher_NetCore
       double startLon = s1.Lng;
 
       var newCoordinates = new List<SegmentCoordinate>();
-      for (int i = 1; i <= numCoordinatesToAdd + 1; i++) // i = 0 would be our starting point
+      for (int i = 1; i <= numCoordinatesToAdd; i++) // i = 0 would be our starting point
       {
         newCoordinates.Add(new SegmentCoordinate
         {

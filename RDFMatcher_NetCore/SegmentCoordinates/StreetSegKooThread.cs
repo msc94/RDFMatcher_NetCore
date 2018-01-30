@@ -74,7 +74,7 @@ namespace RDFMatcher_NetCore
       while (segmentList.Count > 0)
       {
         // Build graph from this segment
-        Segment startSegment = segmentList[0];
+        var startSegment = segmentList[0];
         segmentList.RemoveAt(0);
 
         startSegment.AddChildren(segmentList);
@@ -184,27 +184,19 @@ namespace RDFMatcher_NetCore
         }
       }
 
-      if (minIndex == maxIndex)
-      {
-        if (minIndex > 0)
-          --minIndex;
-        if (maxIndex < coordinates.Count)
-          ++maxIndex;
-      }
-
-      bool reverseRange = false;
       if (minIndex > maxIndex)
       {
         Utils.Swap(ref minIndex, ref maxIndex);
-        reverseRange = true;
+        coordinates = new List<SegmentCoordinate>(coordinates);
+        coordinates.Reverse();
       }
+
+      minIndex = Math.Max(0, minIndex - 3);
+      maxIndex = Math.Min(coordinates.Count, maxIndex + 3);
 
       var startIndex = (int)minIndex;
       var length = (int)(maxIndex - minIndex);
       var newCoordinates = coordinates.GetRange(startIndex, length);
-
-      if (reverseRange)
-        newCoordinates.Reverse();
 
       return newCoordinates;
     }
