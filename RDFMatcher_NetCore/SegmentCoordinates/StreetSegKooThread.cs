@@ -86,7 +86,7 @@ namespace RDFMatcher_NetCore
       coordinates = RemoveDuplicates(coordinates);
       coordinates = ShrinkToHouseNumberRange(coordinates, segmentItem);
 
-      if (coordinates.Count > 1000)
+      if (coordinates.Count > 2000)
       {
         Log.WriteLine("WARNING: segments array too big!");
         return WorkResult.Failed;
@@ -191,8 +191,8 @@ namespace RDFMatcher_NetCore
         coordinates.Reverse();
       }
 
-      minIndex = Math.Max(0, minIndex - 3);
-      maxIndex = Math.Min(coordinates.Count, maxIndex + 3);
+      minIndex = Math.Max(0, minIndex - 5);
+      maxIndex = Math.Min(coordinates.Count, maxIndex + 5);
 
       var startIndex = (int)minIndex;
       var length = (int)(maxIndex - minIndex);
