@@ -191,8 +191,9 @@ namespace RDFMatcher_NetCore
         coordinates.Reverse();
       }
 
-      minIndex = Math.Max(0, minIndex - 5);
-      maxIndex = Math.Min(coordinates.Count, maxIndex + 5);
+      const int addRange = 3;
+      minIndex = Math.Max(0, minIndex - addRange);
+      maxIndex = Math.Min(coordinates.Count, maxIndex + addRange);
 
       var startIndex = (int)minIndex;
       var length = (int)(maxIndex - minIndex);
