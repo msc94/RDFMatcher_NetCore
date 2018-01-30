@@ -141,9 +141,13 @@ namespace DataValidator
       statusLabel.Content = $"Loaded {_entries.Count} entries";
     }
 
+    private const int _minCoordinates = 5;
     public void NextEntry()
     {
-      _currentEntry = _entries[_rand.Next(_entries.Count)];
+      do
+      {
+        _currentEntry = _entries[_rand.Next(_entries.Count)];
+      } while (_currentEntry.Coordinates.Count < _minCoordinates);
     }
 
     public void FillMap(Map map, Label streetLabel)
