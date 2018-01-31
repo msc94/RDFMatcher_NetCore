@@ -111,23 +111,20 @@ namespace RDFMatcher_NetCore.DBHelper
     }
 
     // Be careful when this function returns more than one item!
-    public List<RdfPointItem> GetRdfPointsForAddress(string zip, string streetName, string streetType, string address)
+    public List<RdfPointItem> GetRdfPointsForAddress(long streetZipId, string address)
     {
+      // TODO: We have already matched SZ <-> rdf_addr table! Use these results.
       var reader = MySqlHelper.ExecuteReader(DB.ConnectionString,
         "SELECT pt.ROAD_LINK_ID, pt.ADDRESS, pt.LAT, pt.LNG " +
-        $"FROM {_rdfAddrTable} addr " +
-        $"  LEFT JOIN {_rdfPointTable} pt USING (ROAD_LINK_ID) " +
+        $"FROM {_rdfPointTable} pt " +
         "WHERE " +
-        " addr.LEFT_POSTAL_CODE = @1 AND " +
-        " (addr.STREET_BASE_NAME_UPPER = @2 AND addr.STREET_TYPE = @3) AND " +
-        " pt.ADDRESS = @4 AND " +
+        " pt.ROAD_LINK_ID IN (SELECT ROAD_LINK_ID FROM match_sz WHERE SZ_ID = @1) AND " +
+        " pt.ADDRESS = @2 AND " +
         " pt.LAT IS NOT NULL AND pt.LNG IS NOT NULL;",
         new MySqlParameter[]
         {
-          new MySqlParameter("@1", zip),
-          new MySqlParameter("@2", streetName),
-          new MySqlParameter("@3", streetType),
-          new MySqlParameter("@4", address)
+          new MySqlParameter("@1", streetZipId),
+          new MySqlParameter("@2", address)
         });
 
       List<RdfPointItem> coordinateList = new List<RdfPointItem>();

@@ -33,6 +33,13 @@ namespace RDFMatcher_NetCore.Utilities
       return d.ToString(format, CultureInfo.InvariantCulture);
     }
 
+    public static double RdfCoordinateStringToDouble(string coordinateString)
+    {
+      var coordinateStringLength = coordinateString.Length;
+      coordinateString = coordinateString.Insert(coordinateString.Length - 5, ".");
+      return ParseDoubleInvariantCulture(coordinateString);
+    }
+
     // https://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula
     public static double DistanceBetweenInKilometers(SegmentCoordinate s1, SegmentCoordinate s2)
     {

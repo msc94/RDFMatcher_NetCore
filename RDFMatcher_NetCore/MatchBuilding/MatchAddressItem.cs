@@ -2,8 +2,8 @@
 {
   class MatchAddressItem
   {
-    public int BuildingId;
-    public int StreetZipId;
+    public long BuildingId;
+    public long StreetZipId;
 
     public string Zip;
     public string StreetName;

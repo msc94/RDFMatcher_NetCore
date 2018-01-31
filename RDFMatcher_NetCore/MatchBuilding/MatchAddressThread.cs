@@ -21,7 +21,7 @@ namespace RDFMatcher_NetCore
       var address = (item.HouseNumber + item.HouseNumberExtension).TrimStart('0');
       // var streetType = NZ.ReplaceStreetType(item.StreetType);
 
-      var matchedPoints = _db.GetRdfPointsForAddress(item.Zip, item.StreetName, "", address);
+      var matchedPoints = _db.GetRdfPointsForAddress(item.StreetZipId, address);
       var numMatches = matchedPoints.Count;
 
       if (numMatches == 0)

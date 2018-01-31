@@ -36,8 +36,8 @@ namespace RDFMatcher_NetCore
         {
           var item = new MatchAddressItem
           {
-            BuildingId = reader.GetInt32("B_ID"),
-            StreetZipId = reader.GetInt32("SZ_ID"),
+            BuildingId = reader.GetInt64("B_ID"),
+            StreetZipId = reader.GetInt64("SZ_ID"),
             Zip = reader.GetString("ZIP"),
             StreetName = reader.GetString("NAME"),
             // StreetType = reader.GetString("TYPE"),

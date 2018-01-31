@@ -21,6 +21,7 @@ namespace DataValidator
       var taskList = new List<Task<string>>();
 
       taskList.Add(Task.Run(() => TestBuildingSize()));
+      taskList.Add(Task.Run(() => TestDuplicates()));
       taskList.Add(Task.Run(() => TestMatchedBuildings()));
       taskList.Add(Task.Run(() => TestBuildingStructure()));
       taskList.Add(Task.Run(() => TestStreetSegStructure()));
@@ -60,6 +61,27 @@ namespace DataValidator
         $"There are {numberOfBuildings} buildings in the table. Please check input file size." + Environment.NewLine +
         $"There are {numberOfBuildingsWithCoordinate} buildings with a coordiante. {matchedPercentage.ToString("00.00")}% matched.";
     }
+
+    const string _duplicates = "SELECT COUNT(*) FROM " +
+      "(SELECT COUNT(*), STREET_ZIP_ID, HNO, HNO_EXTENSION " +
+      "FROM building " +
+      "GROUP BY STREET_ZIP_ID, HNO, HNO_EXTENSION " +
+      "HAVING COUNT(*) > 1) as duplicates;";
+
+    private string TestDuplicates()
+    {
+      long numberOfDuplicates = (long)MySqlHelper.ExecuteScalar(_connectionString, _duplicates);
+
+      if (numberOfDuplicates > 0)
+      {
+        return $"[!] There are {numberOfDuplicates} duplicates in the building table.";
+      }
+      else
+      {
+        return "There are no duplicates in the building table";
+      }
+    }
+
 
     const string _buildingViewSize =
       "SELECT COUNT(*)\n" +
@@ -136,7 +158,7 @@ namespace DataValidator
         "MAX(CAST(AP_LAT as DOUBLE)) as LAT_MAX, " +
         "MIN(CAST(AP_LAT as DOUBLE)) as LAT_MIN, " +
         "MAX(CAST(AP_LNG as DOUBLE)) as LNG_MAX, " +
-        "MIN(CAST(AP_LNG as DOUBLE)) as LNG_MIN\n" +
+        "MIN(CAST(AP_LNG as DOUBLE)) as LNG_MIN " +
         "FROM building;");
 
       ReadMinMax(reader, ref minLat, ref maxLat, ref minLng, ref maxLng);
@@ -146,7 +168,7 @@ namespace DataValidator
         "MAX(CAST(CENTER_LAT as DOUBLE)) as LAT_MAX, " +
         "MIN(CAST(CENTER_LAT as DOUBLE)) as LAT_MIN, " +
         "MAX(CAST(CENTER_LNG as DOUBLE)) as LNG_MAX, " +
-        "MIN(CAST(CENTER_LNG as DOUBLE)) as LNG_MIN\n" +
+        "MIN(CAST(CENTER_LNG as DOUBLE)) as LNG_MIN " +
         "FROM street_seg;");
 
       ReadMinMax(reader, ref minLat, ref maxLat, ref minLng, ref maxLng);
@@ -156,7 +178,7 @@ namespace DataValidator
         "MAX(CAST(LAT as DOUBLE)) as LAT_MAX, " +
         "MIN(CAST(LAT as DOUBLE)) as LAT_MIN, " +
         "MAX(CAST(LNG as DOUBLE)) as LNG_MAX, " +
-        "MIN(CAST(LNG as DOUBLE)) as LNG_MIN\n" +
+        "MIN(CAST(LNG as DOUBLE)) as LNG_MIN " +
         "FROM street_seg_koo;");
 
       ReadMinMax(reader, ref minLat, ref maxLat, ref minLng, ref maxLng);
@@ -166,7 +188,7 @@ namespace DataValidator
         "MAX(CAST(lat as DOUBLE)) as LAT_MAX, " +
         "MIN(CAST(lat as DOUBLE)) as LAT_MIN, " +
         "MAX(CAST(lng as DOUBLE)) as LNG_MAX, " +
-        "MIN(CAST(lng as DOUBLE)) as LNG_MIN\n" +
+        "MIN(CAST(lng as DOUBLE)) as LNG_MIN " +
         "FROM zip_koo;");
 
       ReadMinMax(reader, ref minLat, ref maxLat, ref minLng, ref maxLng);
