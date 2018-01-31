@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CsvHelper" Version="6.1.1" />
-    <PackageReference Include="MySql.Data" Version="6.10.5" />
+    <ProjectReference Include="..\3rdparty\MySqlConnector\src\MySqlConnector\MySqlConnector.csproj" />
+    <ProjectReference Include="..\DatabaseLibrary\DatabaseLibrary.csproj" />
   </ItemGroup>
 
 </Project>

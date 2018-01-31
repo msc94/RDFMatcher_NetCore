@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
 using RDFMatcher_NetCore.Countries;
+using RDFMatcher_NetCore.Utilities;
 
 namespace RDFMatcher_NetCore
 {
@@ -38,12 +39,8 @@ namespace RDFMatcher_NetCore
       var match = matchedPoints[0];
       var coordinates = match.Coordinates;
 
-      coordinates.Lat = coordinates.Lat.Insert(2, ".");
-
-      if (coordinates.Lng.Length == 6)
-        coordinates.Lng = coordinates.Lng.Insert(1, ".");
-      else
-        coordinates.Lng = coordinates.Lng.Insert(2, ".");
+      coordinates.Lat = Utils.RdfCoordinateInsertDecimal(coordinates.Lat);
+      coordinates.Lng = Utils.RdfCoordinateInsertDecimal(coordinates.Lng);
 
       _db.InsertMatchedBuildingItem(new MatchedAddressItem
       {

@@ -215,15 +215,8 @@ namespace RDFMatcher_NetCore.DBHelper
       {
         while (reader.Read())
         {
-          string latString = reader.GetString("LAT");
-          string lonString = reader.GetString("LON");
-
-          // Add the decimal point to the lat/lon string
-          latString = latString.Insert(_latDecimalPosition, ".");
-          if (lonString.Length == 6)
-            lonString = lonString.Insert(_lngDecimalPosition - 1, ".");
-          else
-            lonString = lonString.Insert(_lngDecimalPosition, ".");
+          string latString = Utils.RdfCoordinateInsertDecimal(reader.GetString("LAT"));
+          string lonString = Utils.RdfCoordinateInsertDecimal(reader.GetString("LON"));
 
           segment.Coordinates.Add(new SegmentCoordinate()
           {

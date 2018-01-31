@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MySql.Data" Version="6.10.5" />
+    <ProjectReference Include="..\3rdparty\MySqlConnector\src\MySqlConnector\MySqlConnector.csproj" />
   </ItemGroup>
 
 </Project>

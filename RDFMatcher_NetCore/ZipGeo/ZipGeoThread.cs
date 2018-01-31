@@ -35,8 +35,8 @@ namespace RDFMatcher_NetCore
 
       while (coordinateReader.Read())
       {
-        string latString = coordinateReader.GetString("LAT").Insert(3, ".");
-        string lonString = coordinateReader.GetString("LNG").Insert(3, ".");
+        string latString = Utils.RdfCoordinateInsertDecimal(coordinateReader.GetString("LAT"));
+        string lonString = Utils.RdfCoordinateInsertDecimal(coordinateReader.GetString("LNG"));
 
         coordinates.Add(new Coordinates<double>
         {
