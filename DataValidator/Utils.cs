@@ -7,6 +7,16 @@ using System.Threading.Tasks;
 
 namespace DataValidator
 {
+  class Coordinate
+  {
+    public double Lat, Lng;
+
+    public override string ToString()
+    {
+      return $"({Utils.DoubleToStringInvariantCulture(Lat)}, {Utils.DoubleToStringInvariantCulture(Lng)})";
+    }
+  }
+
   class Utils
   {
     public static double ParseDoubleInvariantCulture(string s)

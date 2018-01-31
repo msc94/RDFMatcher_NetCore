@@ -41,7 +41,7 @@ namespace DataValidator
           "server=localhost;" +
           "uid=root;" +
           "pwd=bloodrayne;" +
-          "database=NOR;" +
+          "database=NZ;" +
           "connection timeout=1000;" +
           "command timeout=1000;";
       }
@@ -69,6 +69,7 @@ namespace DataValidator
       {
         var infoString = sanityChecker.RunTests();
         File.WriteAllText(@"J:\SanityChecker.txt", infoString);
+        MessageBox.Show("Validierung abgeschlossen.", "Validierung");
       });
     }
 

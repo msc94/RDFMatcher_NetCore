@@ -11,10 +11,7 @@ using MySql.Data.MySqlClient;
 
 namespace DataValidator
 {
-  class Coordinate
-  {
-    public double Lat, Lng;
-  }
+  
 
   class Building
   {

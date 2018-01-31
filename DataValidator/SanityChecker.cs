@@ -28,7 +28,7 @@ namespace DataValidator
       taskList.Add(Task.Run(() => TestCoordinates()));
 
       var results = taskList.Select(t => t.Result);
-      return string.Join("\n", results);
+      return string.Join(Environment.NewLine, results);
     }
 
     private string TestMatchedBuildings()
@@ -57,7 +57,7 @@ namespace DataValidator
       double matchedPercentage = numberOfBuildingsWithCoordinate / (double)numberOfBuildings * 100.0;
 
       return  
-        $"There are {numberOfBuildings} buildings in the table. Please check input file size.\n" +
+        $"There are {numberOfBuildings} buildings in the table. Please check input file size." + Environment.NewLine +
         $"There are {numberOfBuildingsWithCoordinate} buildings with a coordiante. {matchedPercentage.ToString("00.00")}% matched.";
     }
 
@@ -171,8 +171,17 @@ namespace DataValidator
 
       ReadMinMax(reader, ref minLat, ref maxLat, ref minLng, ref maxLng);
 
-      return $"Coordinates are in range ({Utils.DoubleToStringInvariantCulture(minLat)}, {Utils.DoubleToStringInvariantCulture(minLng)}) to " +
-        $"({Utils.DoubleToStringInvariantCulture(maxLat)}, {Utils.DoubleToStringInvariantCulture(maxLng)})";
+      var minCoordinate = new Coordinate
+      {
+        Lat = minLat, Lng = minLng
+      };
+
+      var maxCoordinate = new Coordinate
+      {
+        Lat = maxLat, Lng = maxLng
+      };
+
+      return $"Coordinates are in range {minCoordinate} to {maxCoordinate}.";
     }
   }
 }
