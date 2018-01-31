@@ -8,4 +8,8 @@
     <ProjectReference Include="..\3rdparty\MySqlConnector\src\MySqlConnector\MySqlConnector.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ApplicationClasses\" />
+  </ItemGroup>
+
 </Project>

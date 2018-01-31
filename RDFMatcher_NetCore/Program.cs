@@ -31,34 +31,14 @@ namespace RDFMatcher_NetCore
     }
   }
 
-  class Log
-  {
-    private static TextWriter _logWriter;
-
-    public static void Init(string fileName)
-    {
-      _logWriter = TextWriter.Synchronized(new StreamWriter(fileName));
-    }
-
-    public static void WriteLine(string message)
-    {
-      _logWriter.WriteLine(message);
-    }
-
-    public static void Flush()
-    {
-      _logWriter.Flush();
-    }
-  }
+  
 
   class Program
   {
     static void Main(string[] args)
     {
       // Add right encoding
-      Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
       Console.OutputEncoding = System.Text.Encoding.UTF8;
-
 
       if (args.Length != 5)
       {

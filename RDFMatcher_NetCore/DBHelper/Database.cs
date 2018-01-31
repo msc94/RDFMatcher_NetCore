@@ -9,9 +9,9 @@ namespace RDFMatcher_NetCore.DBHelper
   class Database
   {
     // Settings
-    private readonly string _rdfAddrTable = "NOR_RDF_ADDR";
-    private readonly string _rdfSegTable = "NOR_RDF_SEG";
-    private readonly string _rdfPointTable = "NOR_RDF_POINT";
+    private readonly string _rdfAddrTable = "rdf_addr";
+    private readonly string _rdfSegTable = "rdf_seg";
+    private readonly string _rdfPointTable = "rdf_point";
 
     private readonly int _latDecimalPosition = 2;
     private readonly int _lngDecimalPosition = 2;

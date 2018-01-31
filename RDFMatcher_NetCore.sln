@@ -9,16 +9,21 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataValidator", "DataValida
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataImporter", "DataImporter\DataImporter.csproj", "{8A4E9293-10A0-4A73-9471-1CDE54B13159}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Shared", "SharedDatabase\Shared.shproj", "{C2458353-19EF-4AB4-9266-87FB47B4C4C7}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DatabaseLibrary", "DatabaseLibrary\DatabaseLibrary.csproj", "{E3163E39-A443-4DB7-A0C9-724307C73BD4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MySqlConnector", "3rdparty\MySqlConnector\src\MySqlConnector\MySqlConnector.csproj", "{877B0013-E26E-4AE6-9924-5EBA51504B6A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatchSz", "MatchSz\MatchSz.csproj", "{ACDB0E35-98E7-4B1F-8FA7-A4DEB168DCAF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatchAddress", "MatchAddress\MatchAddress.csproj", "{1F848A2E-3E8B-48A2-82AC-79297F94EE25}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StreetSeg", "StreetSeg\StreetSeg.csproj", "{00FF32E2-B2CC-4DBD-9C94-8DDC8949D06D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StreetSegKoo", "StreetSegKoo\StreetSegKoo.csproj", "{296CC582-F75D-42C6-86F7-519F535EC56F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZipKoo", "ZipKoo\ZipKoo.csproj", "{B4911807-4B38-4CA0-BC6F-FF2265A11E5B}"
+EndProject
 Global
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		SharedDatabase\SharedDatabase.projitems*{c2458353-19ef-4ab4-9266-87fb47b4c4c7}*SharedItemsImports = 13
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -44,6 +49,26 @@ Global
 		{877B0013-E26E-4AE6-9924-5EBA51504B6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{877B0013-E26E-4AE6-9924-5EBA51504B6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{877B0013-E26E-4AE6-9924-5EBA51504B6A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ACDB0E35-98E7-4B1F-8FA7-A4DEB168DCAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ACDB0E35-98E7-4B1F-8FA7-A4DEB168DCAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ACDB0E35-98E7-4B1F-8FA7-A4DEB168DCAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ACDB0E35-98E7-4B1F-8FA7-A4DEB168DCAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F848A2E-3E8B-48A2-82AC-79297F94EE25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F848A2E-3E8B-48A2-82AC-79297F94EE25}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F848A2E-3E8B-48A2-82AC-79297F94EE25}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F848A2E-3E8B-48A2-82AC-79297F94EE25}.Release|Any CPU.Build.0 = Release|Any CPU
+		{00FF32E2-B2CC-4DBD-9C94-8DDC8949D06D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00FF32E2-B2CC-4DBD-9C94-8DDC8949D06D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00FF32E2-B2CC-4DBD-9C94-8DDC8949D06D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{00FF32E2-B2CC-4DBD-9C94-8DDC8949D06D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{296CC582-F75D-42C6-86F7-519F535EC56F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{296CC582-F75D-42C6-86F7-519F535EC56F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{296CC582-F75D-42C6-86F7-519F535EC56F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{296CC582-F75D-42C6-86F7-519F535EC56F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4911807-4B38-4CA0-BC6F-FF2265A11E5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4911807-4B38-4CA0-BC6F-FF2265A11E5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4911807-4B38-4CA0-BC6F-FF2265A11E5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4911807-4B38-4CA0-BC6F-FF2265A11E5B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
