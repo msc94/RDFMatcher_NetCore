@@ -72,6 +72,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="IRunMode.cs" />
+    <Compile Include="SanityChecker.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="ValidateBuilding.cs" />
     <Compile Include="ValidateStreetSeg.cs" />

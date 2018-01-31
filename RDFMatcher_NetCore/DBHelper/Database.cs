@@ -9,12 +9,12 @@ namespace RDFMatcher_NetCore.DBHelper
   class Database
   {
     // Settings
-    private readonly string _rdfAddrTable = "NZ_RDF_ADDR";
-    private readonly string _rdfSegTable = "NZ_RDF_SEG";
-    private readonly string _rdfPointTable = "NZ_RDF_POINT";
+    private readonly string _rdfAddrTable = "NOR_RDF_ADDR";
+    private readonly string _rdfSegTable = "NOR_RDF_SEG";
+    private readonly string _rdfPointTable = "NOR_RDF_POINT";
 
-    private readonly int _latDecimalPosition = 3;
-    private readonly int _lngDecimalPosition = 3;
+    private readonly int _latDecimalPosition = 2;
+    private readonly int _lngDecimalPosition = 2;
 
     private readonly string _connectionString;
 
@@ -178,7 +178,7 @@ namespace RDFMatcher_NetCore.DBHelper
       return newItem;
     }
 
-    public List<int> GetMatchedRoadLinkIdsForStreetSeg(int streetSegId)
+    public List<int> GetMatchedRoadLinkIdsForStreetSeg(long streetSegId)
     {
       var reader = MySqlHelper.ExecuteReader(_connectionString,
         "SELECT DISTINCT m.ROAD_LINK_ID " +
@@ -223,7 +223,10 @@ namespace RDFMatcher_NetCore.DBHelper
 
           // Add the decimal point to the lat/lon string
           latString = latString.Insert(_latDecimalPosition, ".");
-          lonString = lonString.Insert(_lngDecimalPosition, ".");
+          if (lonString.Length == 6)
+            lonString = lonString.Insert(_lngDecimalPosition - 1, ".");
+          else
+            lonString = lonString.Insert(_lngDecimalPosition, ".");
 
           segment.Coordinates.Add(new SegmentCoordinate()
           {

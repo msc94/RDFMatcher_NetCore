@@ -33,6 +33,7 @@ namespace DataValidator
     public string Name;
     public string Zip;
 
+    public Coordinate Center;
     public List<Coordinate> Coordinates = new List<Coordinate>();
     public List<Building> Buildings = new List<Building>();
   }
@@ -58,7 +59,7 @@ namespace DataValidator
         "WHERE b.STREET_ZIP_ID = @1 AND " +
         " b.AP_LAT IS NOT NULL AND b.AP_LNG IS NOT NULL;";
 
-      var reader = MySqlHelper.ExecuteReader(MainWindow.connectionString, getBuildings,
+      var reader = MySqlHelper.ExecuteReader(MainWindow.ConnectionString, getBuildings,
         new MySqlParameter[]
         {
           new MySqlParameter("@1", item.StreetZipId)
@@ -77,7 +78,7 @@ namespace DataValidator
                 Lat = Utils.ParseDoubleInvariantCulture(reader.GetString("AP_LAT")),
                 Lng = Utils.ParseDoubleInvariantCulture(reader.GetString("AP_LNG"))
               },
-              HouseNumber = reader.GetString("HNO")
+              HouseNumber = reader.GetString("HNO").TrimStart('0')
             });
         }
       }
@@ -102,18 +103,18 @@ namespace DataValidator
     public async void LoadEntries(Label statusLabel)
     {
       const string getEntry =
-        "SELECT ss.ID as ss_ID, HN_START, HN_END, s.NAME, S.TYPE, sz.ID as sz_ID, sz.ZIP, COORDINATES " +
+        "SELECT ss.ID as ss_ID, ss.HN_START, ss.HN_END, ss.CENTER_LAT, ss.CENTER_LNG, s.NAME, sz.ID as sz_ID, sz.ZIP, COORDINATES " +
         "FROM street_seg ss " +
         "  LEFT JOIN street_zip sz ON sz.ID = ss.STREET_ZIP_ID " +
         "  LEFT JOIN street s on s.ID = sz.STREET_ID " +
         "  LEFT JOIN street_seg_koo_group sskg ON ss.ID = sskg.STREET_SEG_ID " +
-        "WHERE COORDINATES IS NOT NULL;";
+        "WHERE COORDINATES IS NOT NULL AND ss.ID = 201;";
 
       await Task.Run(() =>
       {
         _entries.Clear();
 
-        var reader = MySqlHelper.ExecuteReader(MainWindow.connectionString, getEntry);
+        var reader = MySqlHelper.ExecuteReader(MainWindow.ConnectionString, getEntry);
         while (reader.Read())
         {
           Entry item = new Entry
@@ -124,8 +125,14 @@ namespace DataValidator
             HouseNumberStart = reader.GetString("HN_START"),
             HouseNumberEnd = reader.GetString("HN_END"),
 
-            Name = reader.GetString("NAME") + reader.GetString("TYPE"),
-            Zip = reader.GetString("ZIP")
+            Name = reader.GetString("NAME"),
+            Zip = reader.GetString("ZIP"),
+
+            Center = new Coordinate
+            {
+              Lat = reader.GetDouble("CENTER_LAT"),
+              Lng = reader.GetDouble("CENTER_LNG")
+            }
           };
 
           var coordinatesString = reader.GetString("COORDINATES");
@@ -177,6 +184,12 @@ namespace DataValidator
           map.Children.Add(pp);
         }
       }
+
+      // Show Center
+      var center = _currentEntry.Center;
+      var centerPushpin = new Pushpin { Location = new Location(center.Lat, center.Lng) };
+      centerPushpin.Background = new SolidColorBrush(Color.FromArgb(255, 0, 0, 255));
+      map.Children.Add(centerPushpin);
 
       var locationRect = new LocationRect(streetSegmentLocations);
       map.SetView(locationRect);

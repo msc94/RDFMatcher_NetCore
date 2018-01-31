@@ -44,7 +44,7 @@ namespace DataValidator
 
       await Task.Run(() =>
       {
-        var reader = MySqlHelper.ExecuteReader(MainWindow.connectionString, getEntry);
+        var reader = MySqlHelper.ExecuteReader(MainWindow.ConnectionString, getEntry);
         while (reader.Read())
         {
           string apLat = reader.GetString("AP_LAT").Replace('.', ',');

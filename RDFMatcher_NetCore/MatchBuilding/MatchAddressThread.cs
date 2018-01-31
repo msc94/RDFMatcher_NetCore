@@ -19,9 +19,9 @@ namespace RDFMatcher_NetCore
     public override WorkResult Work(MatchAddressItem item)
     {
       var address = (item.HouseNumber + item.HouseNumberExtension).TrimStart('0');
-      var streetType = NZ.ReplaceStreetType(item.StreetType);
+      // var streetType = NZ.ReplaceStreetType(item.StreetType);
 
-      var matchedPoints = _db.GetRdfPointsForAddress(item.Zip, item.StreetName, streetType, address);
+      var matchedPoints = _db.GetRdfPointsForAddress(item.Zip, item.StreetName, "", address);
       var numMatches = matchedPoints.Count;
 
       if (numMatches == 0)
@@ -38,8 +38,12 @@ namespace RDFMatcher_NetCore
       var match = matchedPoints[0];
       var coordinates = match.Coordinates;
 
-      coordinates.Lat = coordinates.Lat.Insert(3, ".");
-      coordinates.Lng = coordinates.Lng.Insert(3, ".");
+      coordinates.Lat = coordinates.Lat.Insert(2, ".");
+
+      if (coordinates.Lng.Length == 6)
+        coordinates.Lng = coordinates.Lng.Insert(1, ".");
+      else
+        coordinates.Lng = coordinates.Lng.Insert(2, ".");
 
       _db.InsertMatchedBuildingItem(new MatchedAddressItem
       {

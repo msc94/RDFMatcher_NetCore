@@ -13,7 +13,7 @@ namespace RDFMatcher_NetCore
   {
     public static void DoMatch()
     {
-      string commandText = "SELECT b.ID as B_ID, b.HNO, b.HNO_EXTENSION, sz.ID as SZ_ID, sz.ZIP, s.NAME, s.TYPE " +
+      string commandText = "SELECT b.ID as B_ID, b.HNO, b.HNO_EXTENSION, sz.ID as SZ_ID, sz.ZIP, s.NAME " +
                            "FROM building b " +
                            "  LEFT JOIN street_zip sz ON (b.STREET_ZIP_ID = sz.ID) " +
                            "  LEFT JOIN street s ON s.id = sz.STREET_ID " +
@@ -40,7 +40,7 @@ namespace RDFMatcher_NetCore
             StreetZipId = reader.GetInt32("SZ_ID"),
             Zip = reader.GetString("ZIP"),
             StreetName = reader.GetString("NAME"),
-            StreetType = reader.GetString("TYPE"),
+            // StreetType = reader.GetString("TYPE"),
             HouseNumber = reader.GetString("HNO"),
             HouseNumberExtension = reader.GetString("HNO_EXTENSION")
           };

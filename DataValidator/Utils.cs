@@ -13,5 +13,10 @@ namespace DataValidator
     {
       return double.Parse(s, CultureInfo.InvariantCulture);
     }
+
+    public static string DoubleToStringInvariantCulture(double d)
+    {
+      return d.ToString(CultureInfo.InvariantCulture);
+    }
   }
 }

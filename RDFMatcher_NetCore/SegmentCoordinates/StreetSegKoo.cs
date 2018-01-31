@@ -21,11 +21,12 @@ namespace RDFMatcher_NetCore
 
       MySqlHelper.ExecuteNonQuery(DB.ConnectionString,
         "TRUNCATE TABLE street_seg_koo; " +
-        "TRUNCATE TABLE street_seg_koo_group;");
+        "TRUNCATE TABLE street_seg_koo_group;" +
+        "UPDATE street_seg SET CENTER_LAT = NULL, CENTER_LNG = NULL WHERE TRUE;");
 
       var szIDReader = MySqlHelper.ExecuteReader(DB.ConnectionString, "SELECT ID as SEG_ID, STREET_ZIP_ID as SZ_ID, HN_START, HN_END, SCHEME " +
                                                                       "FROM street_seg seg " +
-                                                                      "WHERE TRUE;"); // +
+                                                                      "WHERE seg.ID = 201;"); // +
                                                                       //" seg.STREET_ZIP_ID in " +
                                                                       //" (SELECT DISTINCT m.SZ_ID FROM match_sz m) AND" +
                                                                       //" seg.ID not in" +

@@ -67,7 +67,6 @@ namespace RDFMatcher_NetCore
       foreach (var segment in segments)
       {
         segment.Coordinates = Segment.AddCoordinatesInBetween(segment.Coordinates);
-        // coordinates.AddRange(segment.Coordinates);
       }
 
       List<Segment> segmentList = new List<Segment>(segments);

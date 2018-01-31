@@ -126,13 +126,13 @@ namespace RDFMatcher_NetCore
 
       if (firstCoordinateSelf.Equals(firstCoordinateOther))
       {
-        segment.Coordinates.Reverse();
         BeginChildren.Add(segment);
         return true;
       }
 
       if (firstCoordinateSelf.Equals(lastCoordinateOther))
       {
+        segment.Coordinates.Reverse();
         BeginChildren.Add(segment);
         return true;
       }

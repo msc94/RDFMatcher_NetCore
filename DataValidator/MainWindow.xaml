@@ -32,7 +32,7 @@
         <m:Map x:Name="Map" Grid.Row="1" CredentialsProvider="AnJCH1xbn-N0Gbz1yw47VTAcpFEIN7VTdWqOlqwB-vY6-2-_PRjZ5GGCFkmQPJB7" />
 
         <StackPanel Grid.Row="2" Orientation="Horizontal">
-            <Button x:Name="InfoBtn" Content="Info" Click="InfoBtn_OnClick"/>
+            <Button x:Name="ValidateBtn" Content="Validieren" Click="ValidateBtn_Click"/>
             <Label x:Name="StatusLabel" Content="Ende"/>
         </StackPanel>
 
