@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DatabaseLibrary.Utilities
 {
-  class Utils
+  public class Utils
   {
     public static int? ParseIntHandleEmpty(string s)
     {
