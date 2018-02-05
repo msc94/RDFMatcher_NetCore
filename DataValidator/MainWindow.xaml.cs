@@ -34,7 +34,7 @@ namespace DataValidator
     {
       InitializeComponent();
 
-      const bool local = true;
+      const bool local = false;
       if (local)
       {
         ConnectionString =
@@ -51,7 +51,7 @@ namespace DataValidator
           "server=h2744269.stratoserver.net;" +
           "uid=Marcel;" +
           "pwd=YyQzKeSSX0TlgsI4;" +
-          "database=NOR;" +
+          "database=RUS;" +
           "connection timeout=1000;" +
           "command timeout=1000;";
       }

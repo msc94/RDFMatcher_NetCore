@@ -22,11 +22,11 @@ namespace DataValidator
 
       taskList.Add(Task.Run(() => TestBuildingSize()));
       taskList.Add(Task.Run(() => TestDuplicates()));
-      taskList.Add(Task.Run(() => TestMatchedBuildings()));
+      // taskList.Add(Task.Run(() => TestMatchedBuildings()));
       taskList.Add(Task.Run(() => TestBuildingStructure()));
-      taskList.Add(Task.Run(() => TestStreetSegStructure()));
-      taskList.Add(Task.Run(() => TestStreetSeg()));
-      taskList.Add(Task.Run(() => TestCoordinates()));
+      // taskList.Add(Task.Run(() => TestStreetSegStructure()));
+      // taskList.Add(Task.Run(() => TestStreetSeg()));
+      // taskList.Add(Task.Run(() => TestCoordinates()));
 
       var results = taskList.Select(t => t.Result);
       return string.Join(Environment.NewLine, results);
@@ -87,7 +87,10 @@ namespace DataValidator
       "SELECT COUNT(*)\n" +
       "FROM zone z1\n" +
       " JOIN zone z2 ON (z2.LEVEL_1_ZONE_ID = z1.ID)\n" +
-      " JOIN street s ON (s.ZONE_ID = z2.ID)\n" +
+      " JOIN zone z2 ON (z2.LEVEL_1_ZONE_ID = z1.ID)\n" +
+      " JOIN zone z3 ON (z3.LEVEL_2_ZONE_ID = z2.ID)\n" +
+      " JOIN zone z4 ON (z4.LEVEL_3_ZONE_ID = z3.ID)\n" +
+      " JOIN street s ON (s.ZONE_ID = z4.ID)\n" +
       " JOIN street_zip sz ON (sz.STREET_ID = s.ID)\n" +
       " JOIN building b ON (b.STREET_ZIP_ID = sz.ID)\n";
 
@@ -104,7 +107,9 @@ namespace DataValidator
       "SELECT COUNT(*)\n" +
       "FROM zone z1\n" +
       " JOIN zone z2 ON (z2.LEVEL_1_ZONE_ID = z1.ID)\n" +
-      " JOIN street s ON (s.ZONE_ID = z2.ID)\n" +
+      " JOIN zone z3 ON (z3.LEVEL_2_ZONE_ID = z2.ID)\n" +
+      " JOIN zone z4 ON (z4.LEVEL_3_ZONE_ID = z3.ID)\n" +
+      " JOIN street s ON (s.ZONE_ID = z4.ID)\n" +
       " JOIN street_zip sz ON (sz.STREET_ID = s.ID)\n" +
       " JOIN street_seg ss ON (ss.STREET_ZIP_ID = sz.ID)\n" +
       " JOIN street_seg_koo_group sskg ON (sskg.STREET_SEG_ID = ss.ID)" +
