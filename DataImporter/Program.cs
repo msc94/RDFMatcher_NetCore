@@ -4,7 +4,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using DataImporter.Countries;
 using MySql.Data.MySqlClient;
+using DatabaseLibrary.Utilities;
 
 namespace DataImporter
 {
@@ -12,8 +14,11 @@ namespace DataImporter
   {
     static void Main(string[] args)
     {
-      var loadedEntries = NOR.LoadFile();
-      Console.WriteLine(loadedEntries);
+      // var loadedEntries = RUS.LoadFile();
+      // Console.WriteLine(loadedEntries);
+      DebuggerUtils.WaitForDebugger();
+      Console.WriteLine("Hello World!");
+      Console.ReadKey();
     }
   }
 }
