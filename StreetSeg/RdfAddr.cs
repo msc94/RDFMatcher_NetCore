@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace RDFMatcher_NetCore
+namespace StreetSeg
 {
   class RdfAddr
   {

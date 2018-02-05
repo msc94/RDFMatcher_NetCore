@@ -1,6 +1,6 @@
-﻿using RDFMatcher_NetCore.Utilities;
+﻿using DatabaseLibrary.Utilities;
 
-namespace RDFMatcher_NetCore
+namespace MatchAddress
 {
   class MatchedAddressItem
   {

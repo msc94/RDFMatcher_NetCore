@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RDFMatcher_NetCore.Countries
+namespace DatabaseLibrary.Countries
 {
   class NZ
   {

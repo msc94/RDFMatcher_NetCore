@@ -1,4 +1,4 @@
-﻿namespace RDFMatcher_NetCore
+﻿namespace MatchAddress
 {
   class MatchAddressItem
   {

@@ -16,16 +16,13 @@ namespace MatchSz
     {
       GlobalLibraryState.Init("MatchSz", "root", "bloodrayne", "nor");
 
+      var taskList = new List<Task>();
+
       // Get all street_zip entries
       string commandText = "SELECT sz.ID as SZ_ID, sz.ZIP, s.NAME " +
                            "FROM street_zip sz " +
                            "  LEFT JOIN street s ON s.id = sz.STREET_ID " +
-                           "WHERE sz.ID NOT IN (SELECT SZ_ID FROM match_sz)";
-
-      var taskList = new List<Task>();
-
-      DatabaseHelper.ExecuteNonQuery(GlobalLibraryState.ConnectionString, "TRUNCATE TABLE match_sz;");
-
+                           "WHERE sz.ID NOT IN (SELECT SZ_ID FROM match_sz);";
       var reader = DatabaseHelper.ExecuteReader(GlobalLibraryState.ConnectionString, commandText);
       while (reader.Read())
       {

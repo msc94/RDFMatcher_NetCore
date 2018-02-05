@@ -8,5 +8,7 @@ namespace DatabaseLibrary.Utilities
   {
     public T Lat;
     public T Lng;
+
+
   }
 }

@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RDFMatcher_NetCore", "RDFMatcher_NetCore\RDFMatcher_NetCore.csproj", "{27FB6987-57A7-44B6-9945-D8857D3D1EE8}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataValidator", "DataValidator\DataValidator.csproj", "{FAE846DA-4A8B-4878-A8C4-4EE898A5DDCF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataImporter", "DataImporter\DataImporter.csproj", "{8A4E9293-10A0-4A73-9471-1CDE54B13159}"
@@ -13,15 +11,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DatabaseLibrary", "Database
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MySqlConnector", "3rdparty\MySqlConnector\src\MySqlConnector\MySqlConnector.csproj", "{877B0013-E26E-4AE6-9924-5EBA51504B6A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatchSz", "MatchSz\MatchSz.csproj", "{ACDB0E35-98E7-4B1F-8FA7-A4DEB168DCAF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MatchSz", "MatchSz\MatchSz.csproj", "{ACDB0E35-98E7-4B1F-8FA7-A4DEB168DCAF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatchAddress", "MatchAddress\MatchAddress.csproj", "{1F848A2E-3E8B-48A2-82AC-79297F94EE25}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MatchAddress", "MatchAddress\MatchAddress.csproj", "{1F848A2E-3E8B-48A2-82AC-79297F94EE25}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StreetSeg", "StreetSeg\StreetSeg.csproj", "{00FF32E2-B2CC-4DBD-9C94-8DDC8949D06D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StreetSeg", "StreetSeg\StreetSeg.csproj", "{00FF32E2-B2CC-4DBD-9C94-8DDC8949D06D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StreetSegKoo", "StreetSegKoo\StreetSegKoo.csproj", "{296CC582-F75D-42C6-86F7-519F535EC56F}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZipKoo", "ZipKoo\ZipKoo.csproj", "{B4911807-4B38-4CA0-BC6F-FF2265A11E5B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZipKoo", "ZipKoo\ZipKoo.csproj", "{B4911807-4B38-4CA0-BC6F-FF2265A11E5B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +25,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{27FB6987-57A7-44B6-9945-D8857D3D1EE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{27FB6987-57A7-44B6-9945-D8857D3D1EE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{27FB6987-57A7-44B6-9945-D8857D3D1EE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{27FB6987-57A7-44B6-9945-D8857D3D1EE8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FAE846DA-4A8B-4878-A8C4-4EE898A5DDCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FAE846DA-4A8B-4878-A8C4-4EE898A5DDCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FAE846DA-4A8B-4878-A8C4-4EE898A5DDCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -61,10 +53,6 @@ Global
 		{00FF32E2-B2CC-4DBD-9C94-8DDC8949D06D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{00FF32E2-B2CC-4DBD-9C94-8DDC8949D06D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{00FF32E2-B2CC-4DBD-9C94-8DDC8949D06D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{296CC582-F75D-42C6-86F7-519F535EC56F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{296CC582-F75D-42C6-86F7-519F535EC56F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{296CC582-F75D-42C6-86F7-519F535EC56F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{296CC582-F75D-42C6-86F7-519F535EC56F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B4911807-4B38-4CA0-BC6F-FF2265A11E5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B4911807-4B38-4CA0-BC6F-FF2265A11E5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B4911807-4B38-4CA0-BC6F-FF2265A11E5B}.Release|Any CPU.ActiveCfg = Release|Any CPU

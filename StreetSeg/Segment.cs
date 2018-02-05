@@ -1,9 +1,9 @@
-﻿using RDFMatcher_NetCore.Utilities;
+﻿using DatabaseLibrary.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace RDFMatcher_NetCore
+namespace StreetSeg
 {
   class SegmentCoordinate : IEquatable<SegmentCoordinate>
   {
@@ -15,6 +15,25 @@ namespace RDFMatcher_NetCore
       const double epsilonDistance = 0.00001;
       return Math.Abs(Lat - other.Lat) < epsilonDistance &&
              Math.Abs(Lng - other.Lng) < epsilonDistance;
+    }
+
+    // https://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula
+    public static double DistanceBetweenInKilometers(SegmentCoordinate s1, SegmentCoordinate s2)
+    {
+      double earthRadius = 6371.0;
+
+      double dLat = (s2.Lat - s1.Lat).ToRadians();
+      double dLon = (s2.Lng - s1.Lng).ToRadians();
+
+      double a =
+          (Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+          Math.Cos(s1.Lat) * Math.Cos(s2.Lat) *
+          Math.Sin(dLon / 2) * Math.Sin(dLon / 2));
+
+      double c = 2.0f * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+      double distance = earthRadius * c; // Distance in km
+
+      return distance;
     }
   }
 
@@ -35,7 +54,7 @@ namespace RDFMatcher_NetCore
       double totalDistance = 0.0;
       for (int i = 0; i < Coordinates.Count - 1; i++)
       {
-        totalDistance += Utils.DistanceBetweenInKilometers(Coordinates[i], Coordinates[i + 1]);
+        totalDistance += SegmentCoordinate.DistanceBetweenInKilometers(Coordinates[i], Coordinates[i + 1]);
       }
       return totalDistance;
     }
@@ -66,6 +85,10 @@ namespace RDFMatcher_NetCore
       return list;
     }
 
+    // Switches begin and end if the length of the begin-segment is longer 
+    // than the length of the end-segment
+    // This helps in some cases, to give a nice way through the street that always
+    // goes forward through the street
     public void RearrangeChildren()
     {
       double beginChildrenLength = 0.0;
@@ -88,6 +111,7 @@ namespace RDFMatcher_NetCore
       if (segmentList.Count == 0)
         return;
 
+      // If we add a segment to our children, remove it from the (graph-)global segment list
       for (int i = segmentList.Count - 1; i >= 0; i--)
       {
         var currentSegment = segmentList[i];
@@ -97,6 +121,7 @@ namespace RDFMatcher_NetCore
         }
       }
 
+      // Now try if we can build up the graph further by letting our children add segments
       Children = new List<Segment>(BeginChildren.Union(EndChildren));
       foreach (var child in Children)
       {
@@ -171,7 +196,7 @@ namespace RDFMatcher_NetCore
         if (i + 1 < coordinates.Count)
         {
           var nextSegment = coordinates[i + 1];
-          double distance = Utils.DistanceBetweenInKilometers(currentSegment, nextSegment);
+          double distance = SegmentCoordinate.DistanceBetweenInKilometers(currentSegment, nextSegment);
           if (distance > minDistance)
           {
             int numCoordinatesToAdd = (int)(distance / minDistance);
@@ -192,7 +217,8 @@ namespace RDFMatcher_NetCore
       double startLon = s1.Lng;
 
       var newCoordinates = new List<SegmentCoordinate>();
-      for (int i = 1; i <= numCoordinatesToAdd; i++) // i = 0 would be our starting point
+      // i = 0 would be our starting point
+      for (int i = 1; i <= numCoordinatesToAdd; i++)
       {
         newCoordinates.Add(new SegmentCoordinate
         {
