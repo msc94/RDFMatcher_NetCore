@@ -38,16 +38,18 @@ namespace DataImporter.Countries
       return 0;
     }
 
-    private static void SplitHouseNumber(ref string houseNumber, out string extension)
+    private static (string number, string extension) SplitHouseNumber(string houseNumberString)
     {
       int extensionStart = 0;
-      while (extensionStart < houseNumber.Length && char.IsDigit(houseNumber[extensionStart]))
+      while (extensionStart < houseNumberString.Length && char.IsDigit(houseNumberString[extensionStart]))
       {
         extensionStart++;
       }
 
-      extension = houseNumber.Substring(extensionStart);
-      houseNumber = houseNumber.Substring(0, extensionStart);
+      string extension = houseNumberString.Substring(extensionStart);
+      string number = houseNumberString.Substring(0, extensionStart);
+
+      return (number, extension);
     }
 
     private static void InsertBuildings()
@@ -66,25 +68,25 @@ namespace DataImporter.Countries
 
         while (reader.Read())
         {
-          string guid = reader.GetString("GUID");
-          string houseNumber = reader.GetString("HOUSE_NUMBER_EN");
-          string houseNumberRu = reader.GetString("HOUSE_NUMBER");
-          string zip = reader.GetString("POSTAL_CODE");
-          string streetName = reader.GetString("STREET_F_EN");
-          string streetType = reader.GetString("STREET_S_EN");
+          var guid = reader.GetString("GUID");
+          var houseNumberString = reader.GetString("HOUSE_NUMBER_EN");
+          var houseNumberRuString = reader.GetString("HOUSE_NUMBER");
+          var zip = reader.GetString("POSTAL_CODE");
+          var streetName = reader.GetString("STREET_F_EN");
+          var streetType = reader.GetString("STREET_S_EN");
 
-          string level1ZoneName = reader.GetString("REGION_F_EN");
-          string level2ZoneName = reader.GetString("AREA_F_EN");
-          string level3ZoneName = reader.GetString("CITY_F_EN");
-          string level4ZoneName = reader.GetString("PLACE_F_EN");
+          var level1ZoneName = reader.GetString("REGION_F_EN");
+          var level2ZoneName = reader.GetString("AREA_F_EN");
+          var level3ZoneName = reader.GetString("CITY_F_EN");
+          var level4ZoneName = reader.GetString("PLACE_F_EN");
 
           taskList.Add(Task.Run(() =>
           {
             var taskConnection = new MySqlConnection(connectionString);
             taskConnection.Open();
 
-            SplitHouseNumber(ref houseNumber, out string houseNumberExtension);
-            SplitHouseNumber(ref houseNumberRu, out string houseNumberExtensionRu);
+            var (number, extension) = SplitHouseNumber(houseNumberString);
+            var (numberRu, extensionRu) = SplitHouseNumber(houseNumberRuString);
 
             object level1ZoneId = DatabaseHelper.ExecuteScalar(taskConnection, "SELECT ID FROM zone WHERE LEVEL = 1 AND ZONE_NAME = @1", level1ZoneName);
             object level2ZoneId = DatabaseHelper.ExecuteScalar(taskConnection, "SELECT ID FROM zone WHERE LEVEL = 2 AND LEVEL_1_ZONE_ID = @1 AND ZONE_NAME = @2", level1ZoneId, level2ZoneName);
@@ -95,11 +97,11 @@ namespace DataImporter.Countries
             object streetZipId = DatabaseHelper.ExecuteScalar(taskConnection, "SELECT ID FROM street_zip WHERE STREET_ID = @1 AND ZIP = @2", streetId, zip);
 
             long numberOfBuildings = (long) DatabaseHelper.ExecuteScalar(taskConnection, "SELECT COUNT(*) FROM building WHERE STREET_ZIP_ID = @1 AND HNO = @2 AND HNO_EXTENSION = @3;", 
-              streetZipId, houseNumber, houseNumberExtension);
+              streetZipId, number, extension);
             if (numberOfBuildings == 0)
             {
               DatabaseHelper.ExecuteNonQuery(taskConnection, "INSERT INTO building (STREET_ZIP_ID, HNO, HNO_RU, HNO_EXTENSION, HNO_EXTENSION_RU, FOREIN_KEY) VALUES(@1, @2, @3, @4, @5, @6)",
-                streetZipId, houseNumber, houseNumberRu, houseNumberExtension, houseNumberExtensionRu, guid);
+                streetZipId, number, numberRu, extension, extensionRu, guid);
             }
 
             taskConnection.Close();
