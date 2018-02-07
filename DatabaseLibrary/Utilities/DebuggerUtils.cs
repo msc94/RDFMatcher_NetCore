@@ -13,7 +13,7 @@ namespace DatabaseLibrary.Utilities
       Console.WriteLine("Waiting for debugger to attach...");
       while (!Debugger.IsAttached)
       {
-        Thread.Sleep(1000);
+        Thread.Sleep(100);
       }
       Console.WriteLine("Debugger attached");
       Debugger.Break();
