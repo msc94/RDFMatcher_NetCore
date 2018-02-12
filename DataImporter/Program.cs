@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using DataImporter.Countries;
 using MySql.Data.MySqlClient;
 using DatabaseLibrary.Utilities;
+using DatabaseLibrary;
 
 namespace DataImporter
 {
@@ -14,11 +15,7 @@ namespace DataImporter
   {
     static void Main(string[] args)
     {
-      // var loadedEntries = RUS.LoadFile();
-      // Console.WriteLine(loadedEntries);
-      DebuggerUtils.WaitForDebugger();
-      Console.WriteLine("Hello World!");
-      Console.ReadKey();
+      var loadedEntries = RUS.LoadFile();
     }
   }
 }

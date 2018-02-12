@@ -11,16 +11,8 @@ namespace DataImporter.Countries
   class RUS
   {
     const bool local = true;
-    private const string connectionString = local ?
-      "server=localhost;" +
-      "uid=Marcel;" +
-      "pwd=YyQzKeSSX0TlgsI4;" +
-      "database=RUS;" +
-      "connection timeout=10000;" +
-      "command timeout=10000;" +
-      "charset=utf8"
-      :
-      "server=h2744269.stratoserver.net;" +
+    private const string connectionString =
+      "server=" + (local ? "localhost" : "h2744269.stratoserver.net") + ";" +
       "uid=Marcel;" +
       "pwd=YyQzKeSSX0TlgsI4;" +
       "database=RUS;" +
@@ -30,9 +22,9 @@ namespace DataImporter.Countries
 
     internal static long LoadFile()
     {
-      // InsertZones();
-      // InsertStreets();
-      // InsertZips();
+      //InsertZones();
+      //InsertStreets();
+      //InsertZips();
       InsertBuildings();
 
       return 0;
@@ -54,18 +46,14 @@ namespace DataImporter.Countries
 
     private static void InsertBuildings()
     {
-      // DatabaseHelper.ExecuteNonQuery(connectionString, "TRUNCATE TABLE building;");
-
       Console.WriteLine("Inserting buildings...");
       var taskList = new List<Task>();
       using (var reader = DatabaseHelper.ExecuteReader(connectionString,
         "SELECT GUID, HOUSE_NUMBER_EN, HOUSE_NUMBER, POSTAL_CODE, STREET_F_EN, STREET_S_EN, PLACE_F_EN, CITY_F_EN, AREA_F_EN, REGION_F_EN " +
         "FROM input " +
         "WHERE HOUSE_NUMBER_EN <> '' " +
-        "AND GUID NOT IN (SELECT FOREIN_KEY FROM building)"))
+        "AND GUID NOT IN (SELECT FOREIN_KEY FROM building);"))
       {
-        int current = 0;
-
         while (reader.Read())
         {
           var guid = reader.GetString("GUID");
@@ -82,47 +70,41 @@ namespace DataImporter.Countries
 
           taskList.Add(Task.Run(() =>
           {
-            var taskConnection = new MySqlConnection(connectionString);
-            taskConnection.Open();
-
-            var (number, extension) = SplitHouseNumber(houseNumberString);
-            var (numberRu, extensionRu) = SplitHouseNumber(houseNumberRuString);
-
-            object level1ZoneId = DatabaseHelper.ExecuteScalar(taskConnection, "SELECT ID FROM zone WHERE LEVEL = 1 AND ZONE_NAME = @1", level1ZoneName);
-            object level2ZoneId = DatabaseHelper.ExecuteScalar(taskConnection, "SELECT ID FROM zone WHERE LEVEL = 2 AND LEVEL_1_ZONE_ID = @1 AND ZONE_NAME = @2", level1ZoneId, level2ZoneName);
-            object level3ZoneId = DatabaseHelper.ExecuteScalar(taskConnection, "SELECT ID FROM zone WHERE LEVEL = 3 AND LEVEL_1_ZONE_ID = @1 AND LEVEL_2_ZONE_ID = @2 AND ZONE_NAME = @3", level1ZoneId, level2ZoneId, level3ZoneName);
-            object level4ZoneId = DatabaseHelper.ExecuteScalar(taskConnection, "SELECT ID FROM zone WHERE LEVEL = 4 AND LEVEL_1_ZONE_ID = @1 AND LEVEL_2_ZONE_ID = @2 AND LEVEL_3_ZONE_ID = @3 AND ZONE_NAME = @4", level1ZoneId, level2ZoneId, level3ZoneId, level4ZoneName);
-
-            object streetId = DatabaseHelper.ExecuteScalar(taskConnection, "SELECT ID FROM street WHERE ZONE_ID = @1 AND NAME = @2 AND TYPE = @3 AND IS_ALIAS IS NULL", level4ZoneId, streetName, streetType);
-            object streetZipId = DatabaseHelper.ExecuteScalar(taskConnection, "SELECT ID FROM street_zip WHERE STREET_ID = @1 AND ZIP = @2", streetId, zip);
-
-            long numberOfBuildings = (long) DatabaseHelper.ExecuteScalar(taskConnection, "SELECT COUNT(*) FROM building WHERE STREET_ZIP_ID = @1 AND HNO = @2 AND HNO_EXTENSION = @3;", 
-              streetZipId, number, extension);
-            if (numberOfBuildings == 0)
+            using (var taskConnection = new MySqlConnection(connectionString))
             {
+              taskConnection.Open();
+
+              var (number, extension) = SplitHouseNumber(houseNumberString);
+              var (numberRu, extensionRu) = SplitHouseNumber(houseNumberRuString);
+
+              object level1ZoneId = DatabaseHelper.ExecuteScalar(taskConnection, "SELECT ID FROM zone WHERE LEVEL = 1 AND ZONE_NAME = @1", level1ZoneName);
+              object level2ZoneId = DatabaseHelper.ExecuteScalar(taskConnection, "SELECT ID FROM zone WHERE LEVEL = 2 AND LEVEL_1_ZONE_ID = @1 AND ZONE_NAME = @2", level1ZoneId, level2ZoneName);
+              object level3ZoneId = DatabaseHelper.ExecuteScalar(taskConnection, "SELECT ID FROM zone WHERE LEVEL = 3 AND LEVEL_1_ZONE_ID = @1 AND LEVEL_2_ZONE_ID = @2 AND ZONE_NAME = @3", level1ZoneId, level2ZoneId, level3ZoneName);
+              object level4ZoneId = DatabaseHelper.ExecuteScalar(taskConnection, "SELECT ID FROM zone WHERE LEVEL = 4 AND LEVEL_1_ZONE_ID = @1 AND LEVEL_2_ZONE_ID = @2 AND LEVEL_3_ZONE_ID = @3 AND ZONE_NAME = @4", level1ZoneId, level2ZoneId, level3ZoneId, level4ZoneName);
+
+              object streetId = DatabaseHelper.ExecuteScalar(taskConnection, "SELECT ID FROM street WHERE ZONE_ID = @1 AND NAME = @2 AND TYPE = @3 AND IS_ALIAS IS NULL", level4ZoneId, streetName, streetType);
+              object streetZipId = DatabaseHelper.ExecuteScalar(taskConnection, "SELECT ID FROM street_zip WHERE STREET_ID = @1 AND ZIP = @2", streetId, zip);
+
+              long numberOfBuildings = (long)DatabaseHelper.ExecuteScalar(taskConnection, "SELECT COUNT(*) FROM building WHERE STREET_ZIP_ID = @1 AND HNO = @2 AND HNO_EXTENSION = @3;",
+                streetZipId, number, extension);
+
+              if (numberOfBuildings > 0)
+                return;
+
               DatabaseHelper.ExecuteNonQuery(taskConnection, "INSERT INTO building (STREET_ZIP_ID, HNO, HNO_RU, HNO_EXTENSION, HNO_EXTENSION_RU, FOREIN_KEY) VALUES(@1, @2, @3, @4, @5, @6)",
                 streetZipId, number, numberRu, extension, extensionRu, guid);
             }
-
-            taskConnection.Close();
-
-            Interlocked.Increment(ref current);
-            if (current % 100000 == 0)
-              Console.WriteLine(current);
           }));
-
-
-          while (taskList.Count > 1000000)
-          {
-            Console.Write("Waiting... ");
-            Thread.Sleep(30 * 1000);
-            var removed = taskList.RemoveAll(t => t.IsCompleted);
-            Console.WriteLine($"Removed {removed} tasks.");
-          }
         }
       }
 
-      Task.WaitAll(taskList.ToArray());
+      var whenAll = Task.WhenAll(taskList);
+      while (!whenAll.IsCompleted)
+      {
+        Thread.Sleep(5 * 1000);
+        var removed = taskList.RemoveAll(t => t.IsCompleted);
+        Console.WriteLine($"Removed {removed} tasks. {taskList.Count} left");
+      }
     }
 
     private static void InsertStreets()
@@ -130,7 +112,8 @@ namespace DataImporter.Countries
       DatabaseHelper.ExecuteNonQuery(connectionString, "TRUNCATE TABLE street;");
 
       Console.WriteLine("Inserting streets...");
-      using (var reader = DatabaseHelper.ExecuteReader(connectionString, "SELECT DISTINCT STREET_F_EN, STREET_F, STREET_S_EN, STREET_S, PLACE_F_EN, CITY_F_EN, AREA_F_EN, REGION_F_EN FROM input"))
+      using (var reader = DatabaseHelper.ExecuteReader(connectionString,
+        "SELECT DISTINCT STREET_F_EN, STREET_F, STREET_S_EN, STREET_S, PLACE_F_EN, CITY_F_EN, AREA_F_EN, REGION_F_EN FROM input;"))
       {
         while (reader.Read())
         {
@@ -160,7 +143,8 @@ namespace DataImporter.Countries
       DatabaseHelper.ExecuteNonQuery(connectionString, "TRUNCATE TABLE street_zip;");
 
       Console.WriteLine("Inserting zips...");
-      using (var reader = DatabaseHelper.ExecuteReader(connectionString, "SELECT DISTINCT POSTAL_CODE, STREET_F_EN, STREET_S_EN, PLACE_F_EN, CITY_F_EN, AREA_F_EN, REGION_F_EN FROM input"))
+      using (var reader = DatabaseHelper.ExecuteReader(connectionString,
+        "SELECT DISTINCT POSTAL_CODE, STREET_F_EN, STREET_S_EN, PLACE_F_EN, CITY_F_EN, AREA_F_EN, REGION_F_EN FROM input;"))
       {
         while (reader.Read())
         {
