@@ -1,6 +1,7 @@
 ﻿using DatabaseLibrary.Utilities;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace DatabaseLibrary
@@ -15,13 +16,16 @@ namespace DatabaseLibrary
 
     public static void Init(string applicationName, string username, string password, string databaseName)
     {
-      ConnectionString = CreateConnectionString("root", "bloodrayne", "nor");
-      Log.Init(@"G:\SQL\logs\" + applicationName + ".txt");
+      ConnectionString = CreateConnectionString(username, password, databaseName);
+
+      var logDirectory = Path.GetTempPath();
+      Log.Init(logDirectory + applicationName + ".log");
     }
 
+    private const bool LocalServer = true;
     private static string CreateConnectionString(string username, string password, string databaseName)
     {
-      return "Server=localhost;" +
+      return "Server=" + (LocalServer ? "localhost" : "h2744269.stratoserver.net") + "; " +
         $"Uid={username};" +
         $"Pwd={password};" +
         $"Database={databaseName};" +
