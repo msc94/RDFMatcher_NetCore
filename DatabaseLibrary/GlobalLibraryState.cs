@@ -22,7 +22,7 @@ namespace DatabaseLibrary
       Log.Init(logDirectory + applicationName + ".log");
     }
 
-    private const bool LocalServer = true;
+    private const bool LocalServer = false;
     private static string CreateConnectionString(string username, string password, string databaseName)
     {
       return "Server=" + (LocalServer ? "localhost" : "h2744269.stratoserver.net") + "; " +
