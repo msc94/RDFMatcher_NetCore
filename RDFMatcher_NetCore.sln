@@ -19,6 +19,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StreetSeg", "StreetSeg\Stre
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZipKoo", "ZipKoo\ZipKoo.csproj", "{B4911807-4B38-4CA0-BC6F-FF2265A11E5B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZoneKoo", "ZoneKoo\ZoneKoo.csproj", "{47CABA10-90F7-4991-89FE-699B51D2B1AD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{B4911807-4B38-4CA0-BC6F-FF2265A11E5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B4911807-4B38-4CA0-BC6F-FF2265A11E5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B4911807-4B38-4CA0-BC6F-FF2265A11E5B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47CABA10-90F7-4991-89FE-699B51D2B1AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47CABA10-90F7-4991-89FE-699B51D2B1AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47CABA10-90F7-4991-89FE-699B51D2B1AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47CABA10-90F7-4991-89FE-699B51D2B1AD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
