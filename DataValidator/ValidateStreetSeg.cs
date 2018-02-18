@@ -11,8 +11,6 @@ using MySql.Data.MySqlClient;
 
 namespace DataValidator
 {
-  
-
   class Building
   {
     public string HouseNumber;
@@ -82,7 +80,7 @@ namespace DataValidator
     }
 
     private static void SplitCoordinates(Entry item, string coordinatesString)
-    {
+     {
       var coordinatesSplit = coordinatesString.Split('@');
       foreach (var coordinate in coordinatesSplit)
       {
@@ -105,7 +103,8 @@ namespace DataValidator
         "  LEFT JOIN street_zip sz ON sz.ID = ss.STREET_ZIP_ID " +
         "  LEFT JOIN street s on s.ID = sz.STREET_ID " +
         "  LEFT JOIN street_seg_koo_group sskg ON ss.ID = sskg.STREET_SEG_ID " +
-        "WHERE COORDINATES IS NOT NULL AND ss.ID = 201;";
+        "WHERE COORDINATES IS NOT NULL " +
+        "ORDER BY ss.ID DESC;";
 
       await Task.Run(() =>
       {
