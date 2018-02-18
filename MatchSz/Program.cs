@@ -86,14 +86,31 @@ namespace MatchSz
       }
 
       item.StreetTypeAlias = RUS.ReplaceStreetType(item.StreetTypeAlias);
-
-      var departmentName = item.Level3ZoneName.Length == 0 ? item.Level2ZoneName : item.Level3ZoneName;
-      var addrItems = GetMatchingRdfAddrItemsZoneNames(item.Level4ZoneName, departmentName, item.StreetNameAlias, item.StreetTypeAlias);
+      item.StreetNameAlias = RUS.ReplaceStreetName(item.StreetNameAlias);
+      var addrItems = GetMatchingRdfAddrItems(item.Zip, item.StreetNameAlias, item.StreetTypeAlias);
 
       if (addrItems.Count == 0)
       {
-        Log.WriteLine($"No match for {item.Zip}, {item.StreetNameAlias}, {item.StreetTypeAlias}, {item.Level4ZoneName}, {departmentName}");
-        return;
+        var departmentName = item.Level3ZoneName.Length == 0 ? item.Level2ZoneName : item.Level3ZoneName;
+        if (departmentName.Length == 0)
+        {
+          Log.WriteLine($"Department name is empty in {item.Zip}, {item.StreetNameAlias}, {item.StreetTypeAlias}");
+          return;
+        }
+
+        if (item.Level4ZoneName.Length == 0)
+        {
+          Log.WriteLine($"Locality name is empty in {item.Zip}, {item.StreetNameAlias}, {item.StreetTypeAlias}");
+          return;
+        }
+
+        addrItems = GetMatchingRdfAddrItemsZoneNames(item.Level4ZoneName, departmentName, item.StreetNameAlias, item.StreetTypeAlias);
+
+        if (addrItems.Count == 0)
+        {
+          Log.WriteLine($"No match for {item.Zip}, {item.StreetNameAlias}, {item.StreetTypeAlias}, {item.Level4ZoneName}, {departmentName}");
+          return;
+        }
       }
 
       foreach (var addrItem in addrItems)
