@@ -14,13 +14,12 @@ namespace ZipKoo
   {
     private static Progress _progress = new Progress();
 
-    private static string _googleSearchCountry = "";
+    private static string _googleSearchCountry = "Russland";
 
     static void Main(string[] args)
     {
-      GlobalLibraryState.Init("ZipKoo", "root", "bloodrayne", "nor");
+      GlobalLibraryState.Init("ZipKoo", "Marcel", "YyQzKeSSX0TlgsI4", "RUS");
       GoogleSigned.AssignAllServices(new GoogleSigned("AIzaSyCzOcXgCQ_1Nng6shWR9FRS2tRFBItyG0E"));
-      _googleSearchCountry = "Russland";
 
       DatabaseHelper.ExecuteNonQuery(GlobalLibraryState.ConnectionString, "TRUNCATE TABLE zip_koo;");
 
@@ -59,7 +58,7 @@ namespace ZipKoo
       }
       else
       {
-        coordinates = GetCoordinatesGoogle(zip);
+        // coordinates = GetCoordinatesGoogle(zip);
         if (coordinates != null)
         {
           Log.WriteLine($"Matched {zip} from Google data");
@@ -88,19 +87,20 @@ namespace ZipKoo
       var coordinates = new List<Coordinates<double>>();
 
       var coordinateReader = DatabaseHelper.ExecuteReader(GlobalLibraryState.ConnectionString,
-        "SELECT addr.LEFT_POSTAL_CODE, pt.LAT, pt.LNG " +
+        "SELECT seg.LAT, seg.LON " +
         $"FROM {GlobalLibraryState.RdfAddrTable} addr " +
-        $" JOIN {GlobalLibraryState.RdfPointTable} pt USING (ROAD_LINK_ID) " +
-        "WHERE addr.LEFT_POSTAL_CODE = @1 " +
-        " AND pt.LAT IS NOT NULL AND pt.LNG IS NOT NULL",
+        $" JOIN {GlobalLibraryState.RdfSegTable} seg USING (ROAD_LINK_ID) " +
+        "WHERE addr.LEFT_POSTAL_CODE = @1;",
         zip);
 
       using (coordinateReader)
       {
         while (coordinateReader.Read())
         {
-          string latString = Utils.RdfCoordinateInsertDecimal(coordinateReader.GetString("LAT"));
-          string lonString = Utils.RdfCoordinateInsertDecimal(coordinateReader.GetString("LNG"));
+          var latString = coordinateReader.GetInt64("LAT").ToString();
+          var lonString = coordinateReader.GetInt64("LON").ToString();
+          latString = Utils.RdfCoordinateInsertDecimal(latString);
+          lonString = Utils.RdfCoordinateInsertDecimal(lonString);
 
           coordinates.Add(new Coordinates<double>
           {
@@ -131,7 +131,9 @@ namespace ZipKoo
 
       var request = new GeocodingRequest();
       request.Address = $"{zip}, {_googleSearchCountry}";
-      var response = new GeocodingService().GetResponse(request);
+
+      GeocodingService geocodingService = new GeocodingService();
+      var response = geocodingService.GetResponse(request);
 
       if (response.Status != ServiceResponseStatus.Ok)
         return null;
