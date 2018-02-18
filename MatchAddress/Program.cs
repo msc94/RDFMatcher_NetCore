@@ -14,13 +14,12 @@ namespace MatchAddress
 
     static void Main(string[] args)
     {
-      GlobalLibraryState.Init("MatchAddress", "root", "bloodrayne", "nor");
+      GlobalLibraryState.Init("MatchAddress", "Marcel", "YyQzKeSSX0TlgsI4", "RUS");
 
-      string commandText = "SELECT b.ID as B_ID, b.HNO, b.HNO_EXTENSION, sz.ID as SZ_ID, sz.ZIP, s.NAME " +
+      string commandText = "SELECT b.ID as B_ID, b.HNO, b.HNO_EXTENSION, b.STREET_ZIP_ID as SZ_ID " +
                            "FROM building b " +
-                           "  LEFT JOIN street_zip sz ON (b.STREET_ZIP_ID = sz.ID) " +
-                           "  LEFT JOIN street s ON s.id = sz.STREET_ID " +
-                           "WHERE b.ID NOT IN (SELECT BUILDING_ID FROM match_building);";
+                           "WHERE b.ID NOT IN (SELECT BUILDING_ID FROM match_building) " +
+                           "AND b.STREET_ZIP_ID IN (SELECT SZ_ID FROM match_sz);";
 
       var taskList = new List<Task>();
 
@@ -31,15 +30,13 @@ namespace MatchAddress
         {
           BuildingId = reader.GetInt64("B_ID"),
           StreetZipId = reader.GetInt64("SZ_ID"),
-          Zip = reader.GetString("ZIP"),
-          StreetName = reader.GetString("NAME"),
           HouseNumber = reader.GetString("HNO"),
           HouseNumberExtension = reader.GetString("HNO_EXTENSION")
         };
 
-        taskList.Add(
-          Task.Run(() => MatchBuilding(item))
-          );
+        taskList.Add(Task.Run(() => 
+          MatchBuilding(item)
+        ));
       }
 
       var whenAll = Task.WhenAll(taskList);
@@ -62,12 +59,12 @@ namespace MatchAddress
 
       if (numMatches == 0)
       {
-        Log.WriteLine($"No match for {item.Zip}, {item.StreetName}, {item.StreetType}, {address}");
+        Log.WriteLine($"No match for {item.BuildingId}, {item.StreetZipId}, {address}");
         return;
       }
       if (numMatches > 1)
       {
-        Log.WriteLine($"More than one match for {item.Zip}, {item.StreetName}, {item.StreetType}, {address}");
+        Log.WriteLine($"More than one match for {item.BuildingId}, {item.StreetZipId}, {address}");
         return;
       }
 
