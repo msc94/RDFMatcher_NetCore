@@ -14,7 +14,7 @@ namespace StreetSeg
 
     static void Main(string[] args)
     {
-      GlobalLibraryState.Init("StreetSeg", "root", "bloodrayne", "nor");
+      GlobalLibraryState.Init("StreetSeg", "Marcel", "YyQzKeSSX0TlgsI4", "RUS");
 
       DatabaseHelper.ExecuteNonQuery(GlobalLibraryState.ConnectionString,
         "TRUNCATE TABLE street_seg; " +
@@ -23,7 +23,9 @@ namespace StreetSeg
 
       var taskList = new List<Task>();
 
-      var szIDReader = DatabaseHelper.ExecuteReader(GlobalLibraryState.ConnectionString, "SELECT ID FROM street_zip;");
+      var szIDReader = DatabaseHelper.ExecuteReader(GlobalLibraryState.ConnectionString, 
+        "SELECT ID FROM street_zip;");
+
       while (szIDReader.Read())
       {
         var item = new StreetSegItem
@@ -31,7 +33,9 @@ namespace StreetSeg
           StreetZipId = szIDReader.GetInt64("ID")
         };
 
-        taskList.Add(Task.Run(() => AddSegment(item)));
+        taskList.Add(Task.Run(() => 
+          AddSegment(item)
+        ));
       }
 
       var whenAll = Task.WhenAll(taskList);
@@ -60,7 +64,7 @@ namespace StreetSeg
       {
         while (houseNumberReader.Read())
         {
-          var houseNumber = houseNumberReader.GetInt32("HNO");
+          var houseNumber = int.Parse(houseNumberReader.GetString("HNO"));
           houseNumbers.Add(houseNumber);
         }
       }
@@ -91,11 +95,11 @@ namespace StreetSeg
       else
         scheme = 1;
 
-      long streetSegId = (long) DatabaseHelper.ExecuteScalar(GlobalLibraryState.ConnectionString,
+      long streetSegId = Convert.ToInt64(DatabaseHelper.ExecuteScalar(GlobalLibraryState.ConnectionString,
         "INSERT INTO street_seg (STREET_ZIP_ID, HN_START, HN_END, SCHEME) " +
         "VALUES (@1, @2, @3, @4); " +
         "SELECT LAST_INSERT_ID();",
-        item.StreetZipId, minHNO, maxHNO, scheme);
+        item.StreetZipId, minHNO, maxHNO, scheme));
 
       var coordinatesItem = new CoordinatesItem
       {

@@ -19,7 +19,7 @@ namespace StreetSeg
     internal static bool AddCoordinates(CoordinatesItem item)
     {
       // Get matched ROAD_LINK_ID
-      var roadLinkIds = GetRoadLinkId(item.SegmentId);
+      var roadLinkIds = GetRoadLinkId(item.StreetZipId);
       if (roadLinkIds.Count == 0)
       {
         Log.WriteLine($"No ROAD_LINK_ID match for street segment {item.SegmentId}");
@@ -123,8 +123,8 @@ namespace StreetSeg
         "FROM building b " +
         "WHERE b.STREET_ZIP_ID = @1 " +
         " AND b.HNO = @2 " +
-        " AND AP_LAT IS NOT NULL AND AP_LNG IS NOT NULL;" +
-        streetZipId, houseNumber);
+        " AND AP_LAT IS NOT NULL AND AP_LNG IS NOT NULL;",
+      streetZipId, houseNumber);
 
       using (reader)
       {
@@ -242,8 +242,11 @@ namespace StreetSeg
       {
         while (reader.Read())
         {
-          string latString = Utils.RdfCoordinateInsertDecimal(reader.GetString("LAT"));
-          string lonString = Utils.RdfCoordinateInsertDecimal(reader.GetString("LON"));
+          var latString = reader.GetInt64("LAT").ToString();
+          var lonString = reader.GetInt64("LON").ToString();
+
+          latString = Utils.RdfCoordinateInsertDecimal(latString);
+          lonString = Utils.RdfCoordinateInsertDecimal(lonString);
 
           segment.Coordinates.Add(new SegmentCoordinate()
           {
@@ -256,14 +259,13 @@ namespace StreetSeg
     }
 
 
-    private static List<int> GetRoadLinkId(long streetSegId)
+    private static List<int> GetRoadLinkId(long streetZipId)
     {
       var reader = DatabaseHelper.ExecuteReader(GlobalLibraryState.ConnectionString,
-        "SELECT DISTINCT m.ROAD_LINK_ID " +
-        "FROM street_seg seg " +
-        " JOIN match_sz msz ON (msz.SZ_ID = seg.STREET_ZIP_ID) " +
-        "WHERE seg.ID = @1;",
-          streetSegId);
+        "SELECT DISTINCT msz.ROAD_LINK_ID " +
+        "FROM match_sz msz " +
+        "WHERE msz.SZ_ID = @1;",
+          streetZipId);
 
       var roadLinkIds = new List<int>();
       using (reader)
