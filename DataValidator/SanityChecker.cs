@@ -22,11 +22,11 @@ namespace DataValidator
 
       taskList.Add(Task.Run(() => TestBuildingSize()));
       taskList.Add(Task.Run(() => TestDuplicates()));
-      // taskList.Add(Task.Run(() => TestMatchedBuildings()));
+      taskList.Add(Task.Run(() => TestMatchedBuildings()));
       taskList.Add(Task.Run(() => TestBuildingStructure()));
-      // taskList.Add(Task.Run(() => TestStreetSegStructure()));
-      // taskList.Add(Task.Run(() => TestStreetSeg()));
-      // taskList.Add(Task.Run(() => TestCoordinates()));
+      taskList.Add(Task.Run(() => TestStreetSegStructure()));
+      taskList.Add(Task.Run(() => TestStreetSeg()));
+      taskList.Add(Task.Run(() => TestCoordinates()));
 
       var results = taskList.Select(t => t.Result);
       return string.Join(Environment.NewLine, results);
