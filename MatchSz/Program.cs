@@ -73,12 +73,6 @@ namespace MatchSz
     {
       _progress.IncrementItemsDone();
 
-      if (item.Zip.Length == 0)
-      {
-        Log.WriteLine($"Zip is empty in {item.Zip}, {item.StreetNameAlias}, {item.StreetTypeAlias}");
-        return;
-      }
-
       if (item.StreetName.Length == 0)
       {
         Log.WriteLine($"Streetname is empty in {item.Zip}, {item.StreetNameAlias}, {item.StreetTypeAlias}");
@@ -87,30 +81,19 @@ namespace MatchSz
 
       item.StreetTypeAlias = RUS.ReplaceStreetType(item.StreetTypeAlias);
       item.StreetNameAlias = RUS.ReplaceStreetName(item.StreetNameAlias);
-      var addrItems = GetMatchingRdfAddrItems(item.Zip, item.StreetNameAlias, item.StreetTypeAlias);
+
+      var departmentName = item.Level3ZoneName.Length == 0 ? item.Level2ZoneName : item.Level3ZoneName;
+      var addrItems = GetMatchingRdfAddrItemsZoneNames(item.Level4ZoneName, departmentName, item.StreetNameAlias, item.StreetTypeAlias);
 
       if (addrItems.Count == 0)
       {
-        var departmentName = item.Level3ZoneName.Length == 0 ? item.Level2ZoneName : item.Level3ZoneName;
-        if (departmentName.Length == 0)
-        {
-          Log.WriteLine($"Department name is empty in {item.Zip}, {item.StreetNameAlias}, {item.StreetTypeAlias}");
-          return;
-        }
+        addrItems = GetMatchingRdfAddrItems(item.Zip, item.StreetNameAlias, item.StreetTypeAlias);
+      }
 
-        if (item.Level4ZoneName.Length == 0)
-        {
-          Log.WriteLine($"Locality name is empty in {item.Zip}, {item.StreetNameAlias}, {item.StreetTypeAlias}");
-          return;
-        }
-
-        addrItems = GetMatchingRdfAddrItemsZoneNames(item.Level4ZoneName, departmentName, item.StreetNameAlias, item.StreetTypeAlias);
-
-        if (addrItems.Count == 0)
-        {
-          Log.WriteLine($"No match for {item.Zip}, {item.StreetNameAlias}, {item.StreetTypeAlias}, {item.Level4ZoneName}, {departmentName}");
-          return;
-        }
+      if (addrItems.Count == 0)
+      {
+        Log.WriteLine($"No match for {item.Zip}, {item.StreetNameAlias}, {item.StreetTypeAlias}, {item.Level4ZoneName}, {departmentName}");
+        return;
       }
 
       foreach (var addrItem in addrItems)
@@ -133,6 +116,12 @@ namespace MatchSz
 
     private static List<long> GetMatchingRdfAddrItems(string zip, string streetName, string streetType)
     {
+      if (zip.Length == 0)
+      {
+        Log.WriteLine($"Zip is empty");
+        return new List<long>();
+      }
+
       var reader = DatabaseHelper.ExecuteReader(GlobalLibraryState.ConnectionString,
         "SELECT addr.ROAD_LINK_ID " +
         $"FROM {GlobalLibraryState.RdfAddrTable} addr " +
@@ -155,6 +144,18 @@ namespace MatchSz
 
     private static List<long> GetMatchingRdfAddrItemsZoneNames(string localityName, string departmentName, string streetName, string streetType)
     {
+      if (departmentName.Length == 0)
+      {
+        Log.WriteLine($"Department name is empty");
+        return new List<long>();
+      }
+
+      if (localityName.Length == 0)
+      {
+        Log.WriteLine($"Locality name is empty");
+        return new List<long>();
+      }
+
       departmentName = '%' + departmentName + '%';
 
       var reader = DatabaseHelper.ExecuteReader(GlobalLibraryState.ConnectionString,
@@ -165,7 +166,7 @@ namespace MatchSz
         " AND addr.LEFT_DEPARTMENT_NAME LIKE @2 " +
         " AND addr.STREET_BASE_NAME = @3 " +
         " AND addr.STREET_TYPE = @4;",
-         localityName, departmentName, streetName, streetType);
+        localityName, departmentName, streetName, streetType);
 
       var rdfAddrItemList = new List<long>();
       using (reader)
