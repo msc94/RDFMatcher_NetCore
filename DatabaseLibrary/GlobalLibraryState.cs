@@ -22,10 +22,10 @@ namespace DatabaseLibrary
       Log.Init(logDirectory + applicationName + ".log");
     }
 
-    private const bool LocalServer = false;
+    private const bool RemoteServer = false;
     private static string CreateConnectionString(string username, string password, string databaseName)
     {
-      return "Server=" + (LocalServer ? "localhost" : "h2744269.stratoserver.net") + "; " +
+      return "Server=" + (RemoteServer ? "h2744269.stratoserver.net" : "localhost") + ";" +
         $"Uid={username};" +
         $"Pwd={password};" +
         $"Database={databaseName};" +
