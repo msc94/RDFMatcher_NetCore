@@ -21,13 +21,13 @@ namespace ZipKoo
       GlobalLibraryState.Init("ZipKoo", "Marcel", "YyQzKeSSX0TlgsI4", "RUS");
       GoogleSigned.AssignAllServices(new GoogleSigned("AIzaSyCzOcXgCQ_1Nng6shWR9FRS2tRFBItyG0E"));
 
-      DatabaseHelper.ExecuteNonQuery(GlobalLibraryState.ConnectionString, "TRUNCATE TABLE zip_koo;");
-
       var taskList = new List<Task>();
 
       var zipReader = DatabaseHelper.ExecuteReader(GlobalLibraryState.ConnectionString,
         "SELECT DISTINCT ZIP " +
-        "FROM street_zip;");
+        "FROM street_zip " +
+        "WHERE ZIP <> '' " +
+        "AND ZIP NOT IN (SELECT ZIP FROM zip_koo);");
 
       using (zipReader)
       {

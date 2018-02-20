@@ -16,15 +16,14 @@ namespace StreetSeg
     {
       GlobalLibraryState.Init("StreetSeg", "Marcel", "YyQzKeSSX0TlgsI4", "RUS");
 
-      DatabaseHelper.ExecuteNonQuery(GlobalLibraryState.ConnectionString,
-        "TRUNCATE TABLE street_seg; " +
-        "TRUNCATE TABLE street_seg_koo; " +
-        "TRUNCATE TABLE street_seg_koo_group;");
-
       var taskList = new List<Task>();
 
-      var szIDReader = DatabaseHelper.ExecuteReader(GlobalLibraryState.ConnectionString, 
-        "SELECT ID FROM street_zip;");
+      var szIDReader = DatabaseHelper.ExecuteReader(GlobalLibraryState.ConnectionString,
+        "SELECT sz.ID " +
+        "FROM street_zip sz " +
+        " LEFT JOIN street_seg ss ON (ss.STREET_ZIP_ID = sz.ID) " +
+        "WHERE sz.ID NOT IN (SELECT STREET_ZIP_ID FROM street_seg) " +
+        " OR ss.ID NOT IN (SELECT STREET_SEG_ID FROM street_seg_koo_group);");
 
       while (szIDReader.Read())
       {
@@ -33,7 +32,7 @@ namespace StreetSeg
           StreetZipId = szIDReader.GetInt64("ID")
         };
 
-        taskList.Add(Task.Run(() => 
+        taskList.Add(Task.Run(() =>
           AddSegment(item)
         ));
       }
@@ -47,9 +46,23 @@ namespace StreetSeg
       }
     }
 
+    private static void Cleanup(long streetZipId)
+    {
+      long streetSegId = Convert.ToInt64(DatabaseHelper.ExecuteScalar(GlobalLibraryState.ConnectionString,
+        "SELECT ID FROM street_seg WHERE STREET_ZIP_ID = @1", streetZipId));
+
+      DatabaseHelper.ExecuteNonQuery(GlobalLibraryState.ConnectionString,
+        "DELETE FROM street_seg_koo_group WHERE STREET_SEG_ID = @1;" +
+        "DELETE FROM street_seg_koo WHERE STREET_SEG_ID = @1;" +
+        "DELETE FROM street_seg WHERE ID = @1",
+        streetSegId);
+    }
+
     private static void AddSegment(StreetSegItem item)
     {
       _progress.IncrementItemsDone();
+
+      Cleanup(item.StreetZipId);
 
       var houseNumbers = new List<int>();
 
@@ -69,31 +82,31 @@ namespace StreetSeg
         }
       }
 
-      if (houseNumbers.Count == 0)
-        return;
+      int? minHNO = null;
+      int? maxHNO = null;
+      int? scheme = null;
 
-      var minHNO = houseNumbers.Min();
-      var maxHNO = houseNumbers.Max();
-
-      if (minHNO == maxHNO)
-        return;
-
-      bool odd = false, even = false;
-      foreach (var hno in houseNumbers)
+      if (houseNumbers.Count > 0)
       {
-        if (hno % 2 == 0)
-          even = true;
-        else
-          odd = true;
-      }
+        minHNO = houseNumbers.Min();
+        maxHNO = houseNumbers.Max();
 
-      int scheme = 0;
-      if (odd && even)
-        scheme = 3;
-      else if (even)
-        scheme = 2;
-      else
-        scheme = 1;
+        bool odd = false, even = false;
+        foreach (var hno in houseNumbers)
+        {
+          if (hno % 2 == 0)
+            even = true;
+          else
+            odd = true;
+        }
+
+        if (odd && even)
+          scheme = 3;
+        else if (even)
+          scheme = 2;
+        else
+          scheme = 1;
+      }
 
       long streetSegId = Convert.ToInt64(DatabaseHelper.ExecuteScalar(GlobalLibraryState.ConnectionString,
         "INSERT INTO street_seg (STREET_ZIP_ID, HN_START, HN_END, SCHEME) " +

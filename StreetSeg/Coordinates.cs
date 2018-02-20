@@ -10,8 +10,8 @@ namespace StreetSeg
     public long SegmentId;
     public long StreetZipId;
 
-    public int HouseNumberStart;
-    public int HouseNumberEnd;
+    public int? HouseNumberStart;
+    public int? HouseNumberEnd;
   }
 
   internal class Coordinates
@@ -146,8 +146,11 @@ namespace StreetSeg
     // If both of them are not matched, return the full street
     private static List<SegmentCoordinate> ShrinkToHouseNumberRange(List<SegmentCoordinate> coordinates, CoordinatesItem segmentItem)
     {
-      var minHnoCoordinate = GetCoordinateForHouseNumber(segmentItem.StreetZipId, segmentItem.HouseNumberStart);
-      var maxHnoCoordinate = GetCoordinateForHouseNumber(segmentItem.StreetZipId, segmentItem.HouseNumberEnd);
+      var minHnoCoordinate = segmentItem.HouseNumberStart == null ? 
+        null : GetCoordinateForHouseNumber(segmentItem.StreetZipId, segmentItem.HouseNumberStart.Value);
+
+      var maxHnoCoordinate = segmentItem.HouseNumberEnd == null ? 
+        null :  GetCoordinateForHouseNumber(segmentItem.StreetZipId, segmentItem.HouseNumberEnd.Value);
 
       var result = new List<SegmentCoordinate>();
 

@@ -27,8 +27,6 @@ namespace ZoneKoo
     {
       GlobalLibraryState.Init("ZoneKoo", "Marcel", "YyQzKeSSX0TlgsI4", "RUS");
 
-      DatabaseHelper.ExecuteNonQuery(GlobalLibraryState.ConnectionString, "TRUNCATE TABLE zone_koo;");
-
       var taskList = new List<Task>();
 
       var zoneReader = DatabaseHelper.ExecuteReader(GlobalLibraryState.ConnectionString,
@@ -39,7 +37,8 @@ namespace ZoneKoo
         "  LEFT JOIN zone z3a ON (z3a.ZONE_MASTER_ID = z3.ID) " +
         "  LEFT JOIN zone z2 ON (z3.LEVEL_2_ZONE_ID = z2.ID) " +
         "  LEFT JOIN zone z2a ON (z2a.ZONE_MASTER_ID = z2.ID) " +
-        "WHERE z4.LEVEL = 4;");
+        "WHERE z4.LEVEL = 4" +
+        "AND z4.ID NOT IN (SELECT FROM zone_koo);");
 
       using (zoneReader)
       {
