@@ -5,36 +5,50 @@ using Google.Maps.Geocoding;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace ZipKoo
 {
+  static class Thresholds
+  {
+    public const double minLat = 40;
+    public const double maxLat = 80;
+
+    public const double minLng = 25;
+    public const double maxLng = 180;
+  };
+
   class Program
   {
     private static Progress _progress = new Progress();
 
-    private static string _googleSearchCountry = "Russland";
+    private static string _googleSearchCountry = "Polen";
 
     static void Main(string[] args)
     {
-      GlobalLibraryState.Init("ZipKoo", "Marcel", "YyQzKeSSX0TlgsI4", "RUS");
+      // GlobalLibraryState.Init("ZipKoo", "Marcel", "YyQzKeSSX0TlgsI4", "POL");
+      GlobalLibraryState.Init("ZipKoo", "root", "bloodrayne", "POL");
       GoogleSigned.AssignAllServices(new GoogleSigned("AIzaSyCzOcXgCQ_1Nng6shWR9FRS2tRFBItyG0E"));
 
       var taskList = new List<Task>();
 
       var zipReader = DatabaseHelper.ExecuteReader(GlobalLibraryState.ConnectionString,
-        "SELECT DISTINCT ZIP " +
-        "FROM street_zip " +
-        "WHERE ZIP <> '' " +
-        "AND ZIP NOT IN (SELECT ZIP FROM zip_koo);");
+        "SELECT DISTINCT district_code AS ZIP " +
+        "FROM zip_koo " +
+        "WHERE lat IS NULL OR lng IS NULL;");
 
       using (zipReader)
       {
         while (zipReader.Read())
         {
           string zip = zipReader.GetString("ZIP");
-          taskList.Add(Task.Run(() => AddZipCoordinate(zip)));
+          // taskList.Add(Task.Run(() => 
+          AddZipCoordinate(zip);
+          _progress.PrintProgress();
+          Log.Flush();
+          // ));
         }
       }
 
@@ -51,16 +65,19 @@ namespace ZipKoo
     {
       _progress.IncrementItemsDone();
 
+      string matchedFrom = "";
       var coordinates = GetCoordinateRdf(zip);
       if (coordinates != null)
       {
+        matchedFrom = "RDF";
         Log.WriteLine($"Matched {zip} from RDF data");
       }
       else
       {
-        // coordinates = GetCoordinatesGoogle(zip);
+        coordinates = GetCoordinatesGoogle(zip);
         if (coordinates != null)
         {
+          matchedFrom = "G";
           Log.WriteLine($"Matched {zip} from Google data");
         }
       }
@@ -74,10 +91,13 @@ namespace ZipKoo
       const string latFormat = "00.00000";
       const string lngFormat = "00.00000";
       DatabaseHelper.ExecuteNonQuery(GlobalLibraryState.ConnectionString,
-        "INSERT INTO zip_koo VALUES(@1, @2, @3);",
-        zip,
+        "UPDATE zip_koo " +
+        "SET lat = @1, lng = @2, matched_from = @3 " +
+        "WHERE district_code = @4;",
         Utils.DoubleToStringInvariantCulture(coordinates.Lat, latFormat),
-        Utils.DoubleToStringInvariantCulture(coordinates.Lng, lngFormat));
+        Utils.DoubleToStringInvariantCulture(coordinates.Lng, lngFormat),
+        matchedFrom,
+        zip);
 
       _progress.IncrementItemsSuccessful();
     }
@@ -142,10 +162,20 @@ namespace ZipKoo
         return null;
 
       var firstResult = response.Results[0];
+      var lat = firstResult.Geometry.Location.Latitude;
+      var lng = firstResult.Geometry.Location.Longitude;
+
+      if (lat < Thresholds.minLat || lat > Thresholds.maxLat ||
+        lng < Thresholds.minLng || lng > Thresholds.maxLng)
+      {
+        Log.WriteLine($"Throwing away {lat}, {lng} because it is not inside of the Threshold");
+        return null;
+      }
+
       var result = new Coordinates<double>
       {
-        Lat = firstResult.Geometry.Location.Latitude,
-        Lng = firstResult.Geometry.Location.Longitude
+        Lat = lat,
+        Lng = lng
       };
       return result;
     }

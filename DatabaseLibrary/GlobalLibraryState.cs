@@ -31,7 +31,8 @@ namespace DatabaseLibrary
         $"Database={databaseName};" +
         "Connection Timeout=1000;" +
         "Command Timeout=1000;" +
-        "Charset=utf8;";
+        "Charset=utf8;" +
+        "Max Pool Size=20;";
     }
   }
 }

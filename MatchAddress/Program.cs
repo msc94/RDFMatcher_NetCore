@@ -52,7 +52,7 @@ namespace MatchAddress
     {
       _progress.IncrementItemsDone();
 
-      var address = (item.HouseNumber + item.HouseNumberExtension).TrimStart('0');
+      var address = (item.HouseNumber + '?').TrimStart('0');
 
       var matchedPoints = GetRdfPointsForAddress(item.StreetZipId, address);
       var numMatches = matchedPoints.Count;
@@ -125,7 +125,7 @@ namespace MatchAddress
     private static void InsertMatchedBuildingItem(MatchedAddressItem item)
     {
       DatabaseHelper.ExecuteNonQuery(GlobalLibraryState.ConnectionString,
-        "INSERT INTO match_building VALUES (@1, @2, @3, @4, @5)",
+        "INSERT INTO match_building VALUES (@1, @2, @3, @4, @5, 'X')",
           item.RoadLinkId,
           item.Address,
           item.BuildingId,
